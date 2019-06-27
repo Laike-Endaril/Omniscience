@@ -53,6 +53,12 @@ public class Commands extends CommandBase
 
             if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
         }
+        else if (args.length == 2)
+        {
+            for (long id : Debug.threadIDs()) result.add("" + id);
+
+            if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
+        }
         return result;
     }
 
@@ -62,14 +68,43 @@ public class Commands extends CommandBase
         switch (cmd)
         {
             case "threads":
-                for (String s : Debug.getThreadDataStrings())
+                if (args.length == 1)
                 {
-                    notifyCommandListener(sender, this, s);
+                    for (String s : Debug.threadDataStrings())
+                    {
+                        notifyCommandListener(sender, this, s);
+                    }
                 }
+                else if (args.length == 2)
+                {
+                    long id = Debug.threadID(args[1]);
+                    if (id == -1)
+                    {
+                        try
+                        {
+                            id = Long.parseLong(args[1].trim());
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            //Just leave id at -1
+                        }
+                    }
+
+                    if (id == -1)
+                    {
+                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
+                    }
+                    else
+                    {
+                        //TODO
+                    }
+                }
+                else notifyCommandListener(sender, this, getUsage(sender));
+
                 break;
+
             default:
                 notifyCommandListener(sender, this, getUsage(sender));
-                break;
         }
     }
 }

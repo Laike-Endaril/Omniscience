@@ -45,7 +45,7 @@ public class Omnipotence
 //    {
 //        System.out.println(Runtime.getRuntime().maxMemory() - Runtime.getRuntime().freeMemory());
 //        System.out.println(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
-//        Debug.getThreadData();
+//        Debug.threadData();
 //    }
 
 //    @SubscribeEvent(priority = EventPriority.HIGHEST)
