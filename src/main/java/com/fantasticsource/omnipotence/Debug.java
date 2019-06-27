@@ -1,6 +1,7 @@
 package com.fantasticsource.omnipotence;
 
 import com.fantasticsource.tools.datastructures.SortableTable;
+import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.ThreadMXBean;
 
 import java.lang.management.ManagementFactory;
@@ -9,6 +10,7 @@ import java.lang.management.ThreadInfo;
 public class Debug
 {
     private static ThreadMXBean threadMXBean;
+    private static GarbageCollectorMXBean garbageCollectorMXBean; //TODO
 
     public static void init()
     {
