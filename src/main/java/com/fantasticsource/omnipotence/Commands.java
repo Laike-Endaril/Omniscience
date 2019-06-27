@@ -96,7 +96,12 @@ public class Commands extends CommandBase
                     }
                     else
                     {
-                        //TODO
+                        Thread thread = Debug.getThread(id);
+                        if (thread == null) notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
+                        else
+                        {
+                            for (StackTraceElement element : thread.getStackTrace()) notifyCommandListener(sender, this, element.toString());
+                        }
                     }
                 }
                 else notifyCommandListener(sender, this, getUsage(sender));

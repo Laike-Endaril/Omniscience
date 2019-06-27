@@ -22,6 +22,11 @@ public class Debug
     }
 
 
+    public static int threadCount()
+    {
+        return threadBean.getThreadCount();
+    }
+
     public static long[] threadIDs()
     {
         return threadBean.getAllThreadIds();
@@ -50,6 +55,29 @@ public class Debug
     {
         ThreadInfo info = threadBean.getThreadInfo(id);
         return info == null ? null : info.getThreadName();
+    }
+
+    public static Thread[] getThreads()
+    {
+        ThreadGroup group = Thread.currentThread().getThreadGroup();
+
+        for (ThreadGroup parent = group.getParent(); parent != null; parent = group.getParent())
+        {
+            group = parent;
+        }
+
+        Thread[] threads = new Thread[threadCount()];
+        group.enumerate(threads);
+        return threads;
+    }
+
+    public static Thread getThread(long id)
+    {
+        for (Thread thread : getThreads())
+        {
+            if (thread.getId() == id) return thread;
+        }
+        return null;
     }
 
     public static SortableTable threadData()
