@@ -1,6 +1,5 @@
 package com.fantasticsource.omnipotence;
 
-import com.fantasticsource.tools.datastructures.ExplicitPriorityQueue;
 import com.fantasticsource.tools.datastructures.SortableTable;
 import com.sun.management.ThreadMXBean;
 
@@ -24,22 +23,13 @@ public class Debug
     {
         //Table is thread ID (long), thread name (string), thread cpu (long), thread RAM (long)
         SortableTable result = new SortableTable(Long.class, String.class, Long.class, Long.class);
-
-        ExplicitPriorityQueue<ThreadInfo> queue = new ExplicitPriorityQueue<>(threadMXBean.getThreadCount());
+        result.startSorting(3, false);
 
         ThreadInfo threadInfo;
-        for (long l : threadMXBean.getAllThreadIds())
+        for (long id : threadMXBean.getAllThreadIds())
         {
-            threadInfo = threadMXBean.getThreadInfo(l);
-            queue.add(threadInfo, Long.MAX_VALUE - threadMXBean.getThreadAllocatedBytes(l));
-        }
-
-        threadInfo = queue.poll();
-        while (threadInfo != null)
-        {
-            long l = threadInfo.getThreadId();
-            result.add(l, threadInfo.getThreadName(), threadMXBean.getThreadCpuTime(l), threadMXBean.getThreadAllocatedBytes(l));
-            threadInfo = queue.poll();
+            threadInfo = threadMXBean.getThreadInfo(id);
+            result.add(id, threadInfo.getThreadName(), threadMXBean.getThreadCpuTime(id), threadMXBean.getThreadAllocatedBytes(id));
         }
 
         return result;
