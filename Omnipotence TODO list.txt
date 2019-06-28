@@ -13,3 +13,5 @@ Add timestamp
 Find a way to differentiate between mods, not just threads...
 ...intercept execution of mod specific code and do a before/after comparison?
 ...maybe I can add listeners for all events, and hack-force my listeners to being the first to execute?
+
+Add lang support; skipping any more of it for now to speed up development

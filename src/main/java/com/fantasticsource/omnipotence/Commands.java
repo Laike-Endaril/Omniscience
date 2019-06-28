@@ -100,6 +100,8 @@ public class Commands extends CommandBase
                         if (thread == null) notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
                         else
                         {
+                            notifyCommandListener(sender, this, "Thread \"" + thread.getName() + "\" (ID = " + thread.getId() + ") from threadgroup \"" + thread.getThreadGroup().getName() + "\"");
+                            notifyCommandListener(sender, this, "Class = " + thread.getClass().getName());
                             for (StackTraceElement element : thread.getStackTrace()) notifyCommandListener(sender, this, element.toString());
                         }
                     }
