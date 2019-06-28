@@ -16,3 +16,8 @@ Find a way to differentiate between mods, not just threads...
 
 Add lang support; skipping any more of it for now to speed up development
 Improve command usage descriptions
+
+
+
+Notes:
+Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)
