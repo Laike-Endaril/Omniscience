@@ -30,7 +30,9 @@ public class Commands extends CommandBase
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return AQUA + "/omnipotence threads" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment");
+        return AQUA + "/omnipotence threads" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment") + "\n" +
+                AQUA + "/omnipotence threads <id>" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment2") + "\n" +
+                AQUA + "/omnipotence threads <id> stop" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment3");
     }
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args)
@@ -55,9 +57,23 @@ public class Commands extends CommandBase
         }
         else if (args.length == 2)
         {
-            for (long id : Debug.threadIDs()) result.add("" + id);
+            switch (args[0])
+            {
+                case "threads":
+                    for (long id : Debug.threadIDs()) result.add("" + id);
 
-            if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
+                    if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
+            }
+        }
+        else if (args.length == 3)
+        {
+            switch (args[0])
+            {
+                case "threads":
+                    result.add("stop");
+
+                    if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
+            }
         }
         return result;
     }
@@ -75,7 +91,7 @@ public class Commands extends CommandBase
                         notifyCommandListener(sender, this, s);
                     }
                 }
-                else if (args.length == 2)
+                else if (args.length < 4) //2 <= args.length <= 3, as it cannot be 0 or 1 at this point
                 {
                     long id = Debug.threadID(args[1]);
                     if (id == -1)
@@ -93,21 +109,44 @@ public class Commands extends CommandBase
                     if (id == -1)
                     {
                         notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
+                        return;
+                    }
+
+                    Thread thread = Debug.getThread(id);
+                    if (thread == null)
+                    {
+                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
+                        return;
+                    }
+
+                    if (args.length == 2)
+                    {
+                        notifyCommandListener(sender, this, "Thread \"" + thread.getName() + "\" (ID = " + thread.getId() + ") of class \"" + thread.getClass().getName() + "\"");
+
+                        StringBuilder threadGroups = new StringBuilder("Thread Group Lineage is ... ");
+                        String[] strings = Debug.threadGroupLineageStrings(thread);
+                        threadGroups.append("(").append(strings[0]);
+                        for (int i = 1; i < strings.length; i++)
+                        {
+                            threadGroups.append(" -> ").append(strings[i]);
+                        }
+                        threadGroups.append(")");
+
+
+                        notifyCommandListener(sender, this, threadGroups.toString());
+                        for (StackTraceElement element : thread.getStackTrace()) notifyCommandListener(sender, this, element.toString());
                     }
                     else
                     {
-                        Thread thread = Debug.getThread(id);
-                        if (thread == null) notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
-                        else
+                        if (args[2].equals("stop"))
                         {
-                            notifyCommandListener(sender, this, "Thread \"" + thread.getName() + "\" (ID = " + thread.getId() + ") from threadgroup \"" + thread.getThreadGroup().getName() + "\"");
-                            notifyCommandListener(sender, this, "Class = " + thread.getClass().getName());
-                            for (StackTraceElement element : thread.getStackTrace()) notifyCommandListener(sender, this, element.toString());
+                            thread.stop();
+                            notifyCommandListener(sender, this, "Stopping thread " + id + " (" + thread.getName() + ")");
                         }
+                        else notifyCommandListener(sender, this, getUsage(sender));
                     }
                 }
                 else notifyCommandListener(sender, this, getUsage(sender));
-
                 break;
 
             default:

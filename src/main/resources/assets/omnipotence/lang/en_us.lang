@@ -1,2 +1,4 @@
-omnipotence.cmd.threads.comment=§dPrints the RAM (heap) usage of each thread
+omnipotence.cmd.threads.comment=§dShows info for all threads; id, name, cpu, heap allocation (cpu and heap are running totals; GC removals are not accounted for)
+omnipotence.cmd.threads.comment2=§dShows detailed info for the thread with the given id
+omnipotence.cmd.threads.comment3=§cUNSAFE! - Stops the given thread
 omnipotence.cmd.threads.notFound=§cThread not found: %s

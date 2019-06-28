@@ -58,6 +58,44 @@ public class Debug
         return info == null ? null : info.getThreadName();
     }
 
+    public static ArrayList<ThreadGroup> threadGroupLineage()
+    {
+        return threadGroupLineage(Thread.currentThread());
+    }
+
+    public static ArrayList<ThreadGroup> threadGroupLineage(Thread thread)
+    {
+        ArrayList<ThreadGroup> result = new ArrayList<>();
+
+        ThreadGroup group = thread.getThreadGroup();
+        while (group != null)
+        {
+            result.add(group);
+            group = group.getParent();
+        }
+
+        return result;
+    }
+
+    public static String[] threadGroupLineageStrings()
+    {
+        return threadGroupLineageStrings(Thread.currentThread());
+    }
+
+    public static String[] threadGroupLineageStrings(Thread thread)
+    {
+        ArrayList<ThreadGroup> groups = threadGroupLineage(thread);
+        String[] result = new String[groups.size()];
+        int size = result.length;
+
+        for (int i = 0; i < size; i++)
+        {
+            result[i] = groups.get(size - 1 - i).getName();
+        }
+
+        return result;
+    }
+
     public static Thread[] getThreads()
     {
         ThreadGroup group = Thread.currentThread().getThreadGroup();
