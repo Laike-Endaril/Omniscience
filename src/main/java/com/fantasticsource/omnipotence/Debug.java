@@ -6,12 +6,14 @@ import com.sun.management.ThreadMXBean;
 import org.objectweb.asm.util.ASMifier;
 
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadInfo;
 import java.util.ArrayList;
 
 public class Debug
 {
     private static ThreadMXBean threadBean;
+    private static RuntimeMXBean runtimeBean;
     private static GarbageCollectorMXBean gcBean; //TODO
 
     public static void init()
@@ -20,6 +22,8 @@ public class Debug
         threadBean.setThreadAllocatedMemoryEnabled(true);
         threadBean.setThreadCpuTimeEnabled(true);
 //        threadBean.setThreadContentionMonitoringEnabled(true);
+
+        runtimeBean = ManagementFactory.getRuntimeMXBean();
     }
 
 
@@ -143,5 +147,11 @@ public class Debug
     public static void printASM(String fullClassname) throws Exception
     {
         ASMifier.main(new String[]{fullClassname});
+    }
+
+    public static int processID()
+    {
+        String s = runtimeBean.getName();
+        return Integer.parseInt(s.substring(0, s.indexOf("@")));
     }
 }
