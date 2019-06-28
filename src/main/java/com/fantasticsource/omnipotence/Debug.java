@@ -3,6 +3,7 @@ package com.fantasticsource.omnipotence;
 import com.fantasticsource.tools.datastructures.SortableTable;
 import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.ThreadMXBean;
+import org.objectweb.asm.util.ASMifier;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -99,5 +100,10 @@ public class Debug
     public static String[] threadDataStrings()
     {
         return threadData().toString().split("\r\n");
+    }
+
+    public static void printASM(String fullClassname) throws Exception
+    {
+        ASMifier.main(new String[]{fullClassname});
     }
 }
