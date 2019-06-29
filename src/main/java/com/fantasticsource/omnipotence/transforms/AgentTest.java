@@ -1,5 +1,6 @@
 package com.fantasticsource.omnipotence.transforms;
 
+import com.fantasticsource.omnipotence.Debug;
 import sun.management.Agent;
 
 import java.lang.instrument.Instrumentation;
@@ -56,5 +57,9 @@ public class AgentTest extends Agent
         {
             e.printStackTrace();
         }
+
+
+        //Test
+        System.out.println(Debug.sourceTrace(Thread.currentThread()) == null ? "Not yet..." : "Ultimate success!");
     }
 }

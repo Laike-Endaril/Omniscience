@@ -30,6 +30,19 @@ public class ThreadInitVisitor extends MethodVisitor
         mv.visitFieldInsn(PUTFIELD, "java/lang/Thread", "threadQ", "Ljava/lang/Thread;");
 
 
+//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omnipotence/Debug", "sourceTraceMap", "Ljava/util/LinkedHashMap;");
+//        mv.visitVarInsn(ALOAD, 0);
+//        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;", false);
+//        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getStackTrace", "()[Ljava/lang/StackTraceElement;", false);
+//        mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false);
+//        mv.visitInsn(POP);
+
+//        mv.visitVarInsn(ALOAD, 0);
+//        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;", false);
+//        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getStackTrace", "()[Ljava/lang/StackTraceElement;", false);
+//        mv.visitFieldInsn(PUTFIELD, "java/lang/Thread", "sourceTrace", "[Ljava/lang/StackTraceElement;");
+
+
         super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         super.visitLdcInsn("SUCCESS");
         super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
