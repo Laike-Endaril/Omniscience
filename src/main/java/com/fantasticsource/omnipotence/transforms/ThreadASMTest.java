@@ -8,6 +8,8 @@ public class ThreadASMTest
 {
     //Thanks to https://www.javacodegeeks.com/2012/02/manipulating-java-class-files-with-asm.html
 
+    private static byte[] threadEditBytes = null;
+
     public static class ModifierMethodWriter extends MethodVisitor
     {
         private String methodName;
@@ -60,6 +62,14 @@ public class ThreadASMTest
 
     public static void main(String[] args) throws IOException
     {
+        //Write the output to a class file
+        new DataOutputStream(new FileOutputStream(new File("Thread.class"))).write(threadEditBytes());
+    }
+
+    public static byte[] threadEditBytes() throws IOException
+    {
+        if (threadEditBytes != null) return threadEditBytes;
+
         InputStream in = Thread.class.getResourceAsStream("/java/lang/Thread.class");
         ClassReader classReader = new ClassReader(in);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
@@ -68,8 +78,7 @@ public class ThreadASMTest
         ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw);
         classReader.accept(mcw, 0);
 
-        //Write the output to a class file
-        DataOutputStream dout = new DataOutputStream(new FileOutputStream(new File("Thread.class")));
-        dout.write(cw.toByteArray());
+        threadEditBytes = cw.toByteArray();
+        return threadEditBytes;
     }
 }

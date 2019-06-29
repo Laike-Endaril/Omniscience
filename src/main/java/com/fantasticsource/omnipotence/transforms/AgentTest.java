@@ -60,5 +60,9 @@ public class AgentTest extends Agent
         {
             e.printStackTrace();
         }
+
+
+        System.out.println("Starting transformed thread");
+        (new Thread()).run();
     }
 }

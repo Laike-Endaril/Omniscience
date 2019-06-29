@@ -2,6 +2,7 @@ package com.fantasticsource.omnipotence.transforms;
 
 import org.objectweb.asm.util.Printer;
 
+import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 
@@ -20,18 +21,14 @@ public class TestTransformer implements ClassFileTransformer
         if (classBeingRedefined == cls)
         {
             System.out.println("Transforming " + className + " (" + bytes.length + " bytes)");
-
-
-
-            StringBuilder builder = new StringBuilder();
-            for (byte b : bytes)
+            try
             {
-                builder.append(Printer.OPCODES[b & 0xFF]).append("\n");
+                return ThreadASMTest.threadEditBytes();
             }
-            System.out.println(builder);
-
-
-            return bytes;
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
         return bytes;
     }
