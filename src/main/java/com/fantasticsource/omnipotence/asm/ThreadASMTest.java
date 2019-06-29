@@ -6,6 +6,7 @@ import java.io.*;
 
 public class ThreadASMTest
 {
+    //Thanks to https://www.javacodegeeks.com/2012/02/manipulating-java-class-files-with-asm.html
 
     public static class ModifierMethodWriter extends MethodVisitor
     {
@@ -23,6 +24,8 @@ public class ThreadASMTest
         public void visitCode()
         {
             super.visitCode();
+
+            //The printline ends up being the first bit of code in the method
             super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
             super.visitLdcInsn("TEST");
             super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
