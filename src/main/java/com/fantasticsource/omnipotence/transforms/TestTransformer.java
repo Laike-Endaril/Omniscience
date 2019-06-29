@@ -1,7 +1,5 @@
 package com.fantasticsource.omnipotence.transforms;
 
-import org.objectweb.asm.util.Printer;
-
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;

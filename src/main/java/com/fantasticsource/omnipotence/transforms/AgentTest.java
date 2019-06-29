@@ -36,10 +36,6 @@ public class AgentTest extends Agent
 
     private static void submain(String agentArgs, Instrumentation instrumentation)
     {
-        System.out.println("Starting untransformed thread");
-        (new Thread()).run();
-
-
         ArrayList<Class> transformedClasses = new ArrayList<>();
         for (Class cls : instrumentation.getAllLoadedClasses())
         {
@@ -60,9 +56,5 @@ public class AgentTest extends Agent
         {
             e.printStackTrace();
         }
-
-
-        System.out.println("Starting transformed thread");
-        (new Thread()).run();
     }
 }
