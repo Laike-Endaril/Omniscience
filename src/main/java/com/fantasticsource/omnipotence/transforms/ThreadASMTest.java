@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.asm;
+package com.fantasticsource.omnipotence.transforms;
 
 import org.objectweb.asm.*;
 
@@ -65,13 +65,11 @@ public class ThreadASMTest
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
         //Wrap the ClassWriter with our custom ClassVisitor
-        ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM4, cw);
+        ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw);
         classReader.accept(mcw, 0);
 
         //Write the output to a class file
-        File outputDir = new File("asmtest");
-        outputDir.mkdirs();
-        DataOutputStream dout = new DataOutputStream(new FileOutputStream(new File(outputDir, "Thread.class")));
+        DataOutputStream dout = new DataOutputStream(new FileOutputStream(new File("Thread.class")));
         dout.write(cw.toByteArray());
     }
 }

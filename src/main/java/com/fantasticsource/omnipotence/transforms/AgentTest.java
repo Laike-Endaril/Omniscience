@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.instrument;
+package com.fantasticsource.omnipotence.transforms;
 
 import sun.management.Agent;
 
@@ -17,20 +17,25 @@ public class AgentTest extends Agent
 
     public static void premain(String agentArgs, Instrumentation instrumentation)
     {
+        //Called when using -javaagent JVM argument, eg. java -javaagent <agent jarname> -jar <main jarname>
+        //Executes before the main jar, thus the method name
+        //Requires proper manifest entries (see build.gradle)
+
         System.out.println("premain ==============================================================================================================================");
         submain(agentArgs, instrumentation);
     }
 
     public static void agentmain(String agentArgs, Instrumentation instrumentation)
     {
+        //Called at any time during runtime...I'll try this out later
+        //TODO https://stackoverflow.com/questions/1277219/starting-a-java-agent-after-program-start
+
         System.out.println("agentmain =============================================================================================================================");
         submain(agentArgs, instrumentation);
     }
 
     private static void submain(String agentArgs, Instrumentation instrumentation)
     {
-        System.out.println(agentArgs);
-
         System.out.println("Starting untransformed thread");
         (new Thread()).run();
 
