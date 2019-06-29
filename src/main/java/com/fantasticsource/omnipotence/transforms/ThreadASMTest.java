@@ -2,30 +2,13 @@ package com.fantasticsource.omnipotence.transforms;
 
 import org.objectweb.asm.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
-public class ThreadASM
+public class ThreadASMTest
 {
     //Thanks to https://www.javacodegeeks.com/2012/02/manipulating-java-class-files-with-asm.html
 
     private static byte[] threadEditBytes = null;
-
-    public static byte[] threadEditBytes() throws IOException
-    {
-        if (threadEditBytes != null) return threadEditBytes;
-
-        InputStream in = Thread.class.getResourceAsStream("/java/lang/Thread.class");
-        ClassReader classReader = new ClassReader(in);
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-
-        //Wrap the ClassWriter with our custom ClassVisitor
-        ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw);
-        classReader.accept(mcw, 0);
-
-        threadEditBytes = cw.toByteArray();
-        return threadEditBytes;
-    }
 
     public static class ModifierMethodWriter extends MethodVisitor
     {
@@ -75,5 +58,27 @@ public class ThreadASM
 
             return mv;
         }
+    }
+
+    public static void main(String[] args) throws IOException
+    {
+        //Write the output to a class file
+        new DataOutputStream(new FileOutputStream(new File("Thread.class"))).write(threadEditBytes());
+    }
+
+    public static byte[] threadEditBytes() throws IOException
+    {
+        if (threadEditBytes != null) return threadEditBytes;
+
+        InputStream in = Thread.class.getResourceAsStream("/java/lang/Thread.class");
+        ClassReader classReader = new ClassReader(in);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+
+        //Wrap the ClassWriter with our custom ClassVisitor
+        ModifierClassWriter mcw = new ModifierClassWriter(Opcodes.ASM5, cw);
+        classReader.accept(mcw, 0);
+
+        threadEditBytes = cw.toByteArray();
+        return threadEditBytes;
     }
 }

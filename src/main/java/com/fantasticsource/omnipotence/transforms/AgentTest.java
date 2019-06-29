@@ -6,7 +6,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
 
-public class ThreadAgent extends Agent
+public class AgentTest extends Agent
 {
     //Thanks to...
     //https://stackoverflow.com/questions/11898566/tutorials-about-javaagents
@@ -45,7 +45,7 @@ public class ThreadAgent extends Agent
         {
             if (cls.getSimpleName().equals("Thread"))
             {
-                instrumentation.addTransformer(new ThreadTransformer(cls), true);
+                instrumentation.addTransformer(new TestTransformer(cls), true);
                 transformedClasses.add(cls);
             }
         }

@@ -81,9 +81,9 @@ processResources {
 
 jar {
     manifest {
-        attributes 'Agent-Class': 'com.fantasticsource.omnipotence.transforms.ThreadAgent'
+        attributes 'Agent-Class': 'com.fantasticsource.omnipotence.transforms.AgentTest'
         attributes 'Can-Retransform-Classes': 'true'
-        attributes 'Premain-Class': 'com.fantasticsource.omnipotence.transforms.ThreadAgent'
+        attributes 'Premain-Class': 'com.fantasticsource.omnipotence.transforms.AgentTest'
     }
 }
 
