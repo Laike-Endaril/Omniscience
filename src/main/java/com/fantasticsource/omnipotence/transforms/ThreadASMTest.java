@@ -4,7 +4,7 @@ import org.objectweb.asm.*;
 
 import java.io.*;
 
-public class ThreadASMTest
+public class ThreadASMTest extends Thread
 {
     //Thanks to https://www.javacodegeeks.com/2012/02/manipulating-java-class-files-with-asm.html
 

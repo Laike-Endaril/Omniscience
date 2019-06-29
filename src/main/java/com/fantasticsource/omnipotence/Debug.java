@@ -9,11 +9,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadInfo;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 public class Debug
 {
-    public static LinkedHashMap<Thread, StackTraceElement[]> sourceTraceMap = new LinkedHashMap<>();
     private static ThreadMXBean threadBean;
     private static RuntimeMXBean runtimeBean;
     private static GarbageCollectorMXBean gcBean; //TODO
@@ -160,10 +158,5 @@ public class Debug
     public static String getPath(Class cls)
     {
         return cls.getResource(cls.getSimpleName() + ".class").toString();
-    }
-
-    public static StackTraceElement[] sourceTrace(Thread thread)
-    {
-        return sourceTraceMap.get(thread);
     }
 }
