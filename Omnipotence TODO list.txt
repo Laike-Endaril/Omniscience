@@ -20,5 +20,15 @@ Improve command usage descriptions
 
 
 Notes:
+
 Remember to change the jar filename in AgentTest run config whenever a new jar is built
+
 Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)
+
+In the current version (1.12.2.000c), the game runs fine with the mod in the mods folder and the javaagent arg in MultiMC, but...
+...on dedicated, it runs...
+1. If the mod is in mods, and you don't use javaagent
+2. If the mod is *not* in mods, and you use javaagent (still loads as a mod)
+...but it doesn't run...
+1. If the mod is in mods and you use javaagent (duplicate mod crash)
+2. If the mod is *not* in mods and you *don't* use javaagent (does not load mod)
