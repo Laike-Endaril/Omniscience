@@ -26,33 +26,53 @@ public class ThreadInitVisitor extends MethodVisitor
         //The new code ends up being the first bit of code in the method
 
 
+        //Prints the thread name
+        mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
+        mv.visitLdcInsn("======= ");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        mv.visitVarInsn(ALOAD, 3);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        mv.visitLdcInsn(" =======");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+
+
+        //Prints the stacktrace of the thread's parent
         mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;", false);
         mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getStackTrace", "()[Ljava/lang/StackTraceElement;", false);
-        mv.visitVarInsn(ASTORE, 1);
-        mv.visitVarInsn(ALOAD, 1);
+        mv.visitVarInsn(ASTORE, 8);
+        mv.visitVarInsn(ALOAD, 8);
         mv.visitInsn(ARRAYLENGTH);
-        mv.visitVarInsn(ISTORE, 2);
+        mv.visitVarInsn(ISTORE, 9);
         mv.visitInsn(ICONST_0);
-        mv.visitVarInsn(ISTORE, 3);
+        mv.visitVarInsn(ISTORE, 10);
         Label l0 = new Label();
         mv.visitLabel(l0);
-        mv.visitFrame(Opcodes.F_APPEND,3, new Object[] {"[Ljava/lang/StackTraceElement;", Opcodes.INTEGER, Opcodes.INTEGER}, 0, null);
-        mv.visitVarInsn(ILOAD, 3);
-        mv.visitVarInsn(ILOAD, 2);
+        mv.visitFrame(Opcodes.F_APPEND, 3, new Object[]{"[Ljava/lang/StackTraceElement;", Opcodes.INTEGER, Opcodes.INTEGER}, 0, null);
+        mv.visitVarInsn(ILOAD, 10);
+        mv.visitVarInsn(ILOAD, 9);
         Label l1 = new Label();
         mv.visitJumpInsn(IF_ICMPGE, l1);
-        mv.visitVarInsn(ALOAD, 1);
-        mv.visitVarInsn(ILOAD, 3);
+        mv.visitVarInsn(ALOAD, 8);
+        mv.visitVarInsn(ILOAD, 10);
         mv.visitInsn(AALOAD);
-        mv.visitVarInsn(ASTORE, 4);
+        mv.visitVarInsn(ASTORE, 11);
         mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-        mv.visitVarInsn(ALOAD, 4);
+        mv.visitVarInsn(ALOAD, 11);
         mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/Object;)V", false);
-        mv.visitIincInsn(3, 1);
+        mv.visitIincInsn(10, 1);
         mv.visitJumpInsn(GOTO, l0);
         mv.visitLabel(l1);
-        mv.visitFrame(Opcodes.F_CHOP,3, null, 0, null);
-        mv.visitInsn(RETURN);
+        mv.visitFrame(Opcodes.F_CHOP, 3, null, 0, null);
+
+
+        //Prints an empty line
+        mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "()V", false);
 
 
         //Succeeded (simple printline)
