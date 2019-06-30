@@ -20,5 +20,5 @@ Improve command usage descriptions
 
 
 Notes:
+Remember to change the jar filename in AgentTest run config whenever a new jar is built
 Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)
-Seem to get a NoClassDefFoundError whenever I try to reference any of my own classes in the opcodes
