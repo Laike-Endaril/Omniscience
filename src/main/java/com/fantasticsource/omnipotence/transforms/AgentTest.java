@@ -39,8 +39,9 @@ public class AgentTest extends Agent
         ArrayList<Class> transformedClasses = new ArrayList<>();
         for (Class cls : instrumentation.getAllLoadedClasses())
         {
-            if (cls.getSimpleName().equals("Thread"))
+            if (cls.getName().equals("java.lang.Thread"))
             {
+                System.out.println(cls.getName());
                 instrumentation.addTransformer(new TestTransformer(cls), true);
                 transformedClasses.add(cls);
             }
