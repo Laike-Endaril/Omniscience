@@ -25,7 +25,7 @@ Remember to change the jar filename in AgentTest run config whenever a new jar i
 
 
 Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)
-But earliest execution is still from a runtime agent (premain)
+But earliest execution is still from a runtime agent (premain), and both require java args anyway?
 
 
 In the current version (1.12.2.000c), the game runs fine with the mod in the mods folder and the javaagent arg in MultiMC, but...

@@ -27,8 +27,9 @@ public class AgentTest extends Agent
 
     public static void agentmain(String agentArgs, Instrumentation instrumentation)
     {
-        //Called at any time during runtime...I'll try this out later
-        //TODO https://stackoverflow.com/questions/1277219/starting-a-java-agent-after-program-start
+        //Called at any time during runtime...if it's supported, which doesn't seem to be a common case?
+        //TODO https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html
+        //For now, I'm calling this "not reliable" and will require the java arg to run the mod correctly
 
         System.out.println("agentmain =============================================================================================================================");
         submain(agentArgs, instrumentation);
