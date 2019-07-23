@@ -125,8 +125,8 @@ public class Debug
 
     public static SortableTable threadData()
     {
-        //Table is thread ID (long), thread name (string), thread cpu (long), thread RAM (long)
         SortableTable result = new SortableTable(Long.class, String.class, Long.class, Long.class);
+        result.labels("ID", "Name", "CPU", "Heap");
         result.startSorting(3, false);
 
         ThreadInfo threadInfo;
