@@ -3,6 +3,7 @@ package com.fantasticsource.omnipotence;
 import com.fantasticsource.tools.datastructures.SortableTable;
 import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.ThreadMXBean;
+import net.minecraft.util.text.TextFormatting;
 import org.objectweb.asm.util.ASMifier;
 
 import java.lang.management.ManagementFactory;
@@ -141,7 +142,7 @@ public class Debug
 
     public static String[] threadDataStrings()
     {
-        return threadData().toString().split("\r\n");
+        return (threadData().toString() + "\r\n" + TextFormatting.YELLOW + "I highly suggest looking at this in your console/log, not in chat.").split("\r\n");
     }
 
     public static void printASM(String fullClassname) throws Exception
