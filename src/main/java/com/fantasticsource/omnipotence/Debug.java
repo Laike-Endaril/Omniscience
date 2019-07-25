@@ -156,7 +156,7 @@ public class Debug
         return Integer.parseInt(s.substring(0, s.indexOf("@")));
     }
 
-    public static String getPath(Class cls)
+    public static String getClassPath(Class cls)
     {
         return cls.getResource(cls.getSimpleName() + ".class").toString();
     }

@@ -1,3 +1,7 @@
+Add path debugging command (/omnipotence pathing show/hide)
+
+
+
 Find a new way to ensure my mod is first in the event priority queue...
 ...actual mod loading order may be difficult due to dependencies of my own and other mods
 ...enum alterations didn't turn out well, though I learned some interesting hacks
@@ -7,7 +11,6 @@ See if I can reliably get an event for pre- and post-gc...
 ...finalize timing = ?
 ...notification listener timing = ?
 
-Add cpu usage (thread mxbeans have cpu in addition to memory allocation)
 Add timestamp
 
 Find a way to differentiate between mods, not just threads...
@@ -15,7 +18,6 @@ Find a way to differentiate between mods, not just threads...
 ...maybe I can add listeners for all events, and hack-force my listeners to being the first to execute?
 
 Add lang support; skipping any more of it for now to speed up development
-Improve command usage descriptions
 
 
 
