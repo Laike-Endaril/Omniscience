@@ -1,5 +1,6 @@
 package com.fantasticsource.omnipotence;
 
+import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.tools.datastructures.SortableTable;
 import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.ThreadMXBean;
@@ -126,15 +127,17 @@ public class Debug
 
     public static SortableTable threadData()
     {
-        SortableTable result = new SortableTable(Long.class, String.class, Long.class, Long.class);
-        result.labels("ID", "Name", "CPU", "Heap");
-        result.startSorting(3, false);
+        SortableTable result = new SortableTable(Long.class, String.class, Long.class, String.class, Long.class, String.class);
+        result.labels("ID", "Name", "CPU", "CPU/sec", "Heap", "Heap/sec");
+        result.startSorting(4, false);
 
         ThreadInfo threadInfo;
         for (long id : threadBean.getAllThreadIds())
         {
             threadInfo = threadBean.getThreadInfo(id);
-            result.add(id, threadInfo.getThreadName(), threadBean.getThreadCpuTime(id), threadBean.getThreadAllocatedBytes(id));
+            long cpu = threadBean.getThreadCpuTime(id);
+            long heap = threadBean.getThreadAllocatedBytes(id);
+            result.add(id, threadInfo.getThreadName(), cpu, (cpu / (ServerTickTimer.currentTick() * 20)) + "/s", heap, (heap / (ServerTickTimer.currentTick() * 20)) + "/s");
         }
 
         return result;

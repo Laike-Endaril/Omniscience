@@ -1,5 +1,6 @@
 package com.fantasticsource.omnipotence;
 
+import com.fantasticsource.mctools.ServerTickTimer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
@@ -18,6 +19,7 @@ public class Omnipotence
     static
     {
         MinecraftForge.EVENT_BUS.register(Omnipotence.class);
+        MinecraftForge.EVENT_BUS.register(ServerTickTimer.class);
         Debug.init();
 
 //        try
