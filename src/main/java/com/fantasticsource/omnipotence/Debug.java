@@ -128,14 +128,14 @@ public class Debug
     public static SortableTable threadData()
     {
         SortableTable result = new SortableTable(Long.class, String.class, Long.class, String.class, Long.class, String.class);
-        result.labels("ID", "Name", "CPU", "CPU/sec", "Heap", "Heap/sec");
+        result.labels("ID", "Name", "CPU", "CPU/tick", "Heap", "Heap/tick");
         result.startSorting(4, false);
 
         for (long id : threadBean.getAllThreadIds())
         {
             long cpu = threadBean.getThreadCpuTime(id);
             long heap = threadBean.getThreadAllocatedBytes(id);
-            result.add(id, threadBean.getThreadInfo(id).getThreadName(), cpu + "ns", (cpu / (ServerTickTimer.currentTick() * 20)) + "ns/s", heap + "B", (heap / (ServerTickTimer.currentTick() * 20)) + "B/s");
+            result.add(id, threadBean.getThreadInfo(id).getThreadName(), cpu + "ns", (cpu / ServerTickTimer.currentTick()) + "ns/t", heap + "B", (heap / ServerTickTimer.currentTick()) + "B/t");
         }
 
         return result;
