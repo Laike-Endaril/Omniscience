@@ -131,13 +131,11 @@ public class Debug
         result.labels("ID", "Name", "CPU", "CPU/sec", "Heap", "Heap/sec");
         result.startSorting(4, false);
 
-        ThreadInfo threadInfo;
         for (long id : threadBean.getAllThreadIds())
         {
-            threadInfo = threadBean.getThreadInfo(id);
             long cpu = threadBean.getThreadCpuTime(id);
             long heap = threadBean.getThreadAllocatedBytes(id);
-            result.add(id, threadInfo.getThreadName(), cpu, (cpu / (ServerTickTimer.currentTick() * 20)) + "/s", heap, (heap / (ServerTickTimer.currentTick() * 20)) + "/s");
+            result.add(id, threadBean.getThreadInfo(id).getThreadName(), cpu + "ns", (cpu / (ServerTickTimer.currentTick() * 20)) + "ns/s", heap + "B", (heap / (ServerTickTimer.currentTick() * 20)) + "B/s");
         }
 
         return result;
