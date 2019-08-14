@@ -60,5 +60,8 @@ public class Omnipotence
     public static void serverStarting(FMLServerStartingEvent event)
     {
         event.registerServerCommand(new Commands());
+
+        if (ServerHangWatchdogDebugger.init(event.getServer())) System.out.println("Starting ServerHangWatchdogDebugger");
+        else System.out.println("NOT starting ServerHangWatchdogDebugger; either we are not running in dedicated server mode, or the watchdog timeout setting is 0");
     }
 }
