@@ -21,19 +21,6 @@ public class Omnipotence
         MinecraftForge.EVENT_BUS.register(Omnipotence.class);
         MinecraftForge.EVENT_BUS.register(ServerTickTimer.class);
         Debug.init();
-
-//        try
-//        {
-//            Timing.init();
-//        }
-//        catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException e)
-//        {
-//            MCTools.crash(e, 1000, true);
-//        }
-
-//        Test.installGCMonitoring();
-
-//        GCDetector.start();
     }
 
     @SubscribeEvent
@@ -41,20 +28,6 @@ public class Omnipotence
     {
         if (event.getModID().equals(MODID)) ConfigManager.sync(MODID, Config.Type.INSTANCE);
     }
-
-//    @SubscribeEvent(priority = EventPriority.HIGHEST)
-//    public static void test(TickEvent.ServerTickEvent event)
-//    {
-//        System.out.println(Runtime.getRuntime().maxMemory() - Runtime.getRuntime().freeMemory());
-//        System.out.println(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
-//        Debug.threadData();
-//    }
-
-//    @SubscribeEvent(priority = EventPriority.HIGHEST)
-//    public static void test(WorldEvent.Load event)
-//    {
-//        System.out.println(MODID);
-//    }
 
     @Mod.EventHandler
     public static void serverStarting(FMLServerStartingEvent event)

@@ -2,7 +2,6 @@ package com.fantasticsource.omnipotence;
 
 import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.tools.datastructures.SortableTable;
-import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.ThreadMXBean;
 import net.minecraft.util.text.TextFormatting;
 import org.objectweb.asm.util.ASMifier;
@@ -16,14 +15,12 @@ public class Debug
 {
     private static ThreadMXBean threadBean;
     private static RuntimeMXBean runtimeBean;
-    private static GarbageCollectorMXBean gcBean; //TODO
 
     public static void init()
     {
         threadBean = ((ThreadMXBean) ManagementFactory.getThreadMXBean());
         threadBean.setThreadAllocatedMemoryEnabled(true);
         threadBean.setThreadCpuTimeEnabled(true);
-//        threadBean.setThreadContentionMonitoringEnabled(true);
 
         runtimeBean = ManagementFactory.getRuntimeMXBean();
     }
