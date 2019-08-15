@@ -36,19 +36,7 @@ public class Omnipotence
 
         System.out.println(Debug.memData());
 
-//        java.lang.ArrayIndexOutOfBoundsException: -1
-//        at java.util.ArrayList.elementData(ArrayList.java:422)
-//        at java.util.ArrayList.get(ArrayList.java:435)
-//        at net.minecraft.profiler.Profiler.endSection(Profiler.java:76)
-//        at net.minecraft.profiler.Profiler.endStartSection(Profiler.java:149)
-//        at net.minecraft.server.MinecraftServer.updateTimeLightAndEntities(MinecraftServer.java:787)
-//        at net.minecraft.server.dedicated.DedicatedServer.updateTimeLightAndEntities(DedicatedServer.java:397)
-//        at net.minecraft.server.MinecraftServer.tick(MinecraftServer.java:668)
-//        at net.minecraft.server.MinecraftServer.run(MinecraftServer.java:526)
-//        at java.lang.Thread.run(Thread.java:748)
-
-        //TODO Need to fix this before re-enabling it!  See stacktrace above!  Might be due to cross-thread dysync in the profiler calls
-//        if (ServerHangWatchdogDebugger.init(event.getServer())) System.out.println("Starting ServerHangWatchdogDebugger");
-//        else System.out.println("NOT starting ServerHangWatchdogDebugger; either we are not running in dedicated server mode, or the watchdog timeout setting is 0");
+        if (ServerHangWatchdogDebugger.init(event.getServer())) System.out.println("Starting ServerHangWatchdogDebugger");
+        else System.out.println("NOT starting ServerHangWatchdogDebugger; either we are not running in dedicated server mode, or the watchdog timeout setting is 0");
     }
 }
