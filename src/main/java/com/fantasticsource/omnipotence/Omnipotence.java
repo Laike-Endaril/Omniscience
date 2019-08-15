@@ -1,6 +1,7 @@
 package com.fantasticsource.omnipotence;
 
 import com.fantasticsource.mctools.ServerTickTimer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
@@ -36,7 +37,12 @@ public class Omnipotence
 
         System.out.println(Debug.memData());
 
-        if (ServerHangWatchdogDebugger.init(event.getServer())) System.out.println("Starting ServerHangWatchdogDebugger");
-        else System.out.println("NOT starting ServerHangWatchdogDebugger; either we are not running in dedicated server mode, or the watchdog timeout setting is 0");
+        MinecraftServer server = event.getServer();
+        if (server.isDedicatedServer())
+        {
+            if (LagDetector.init(server)) System.out.println("Starting LagDetector");
+            else System.out.println("NOT starting LagDetector; the watchdog timeout setting is 0");
+        }
+        else System.out.println("NOT starting LagDetector; we are not running in dedicated server mode");
     }
 }

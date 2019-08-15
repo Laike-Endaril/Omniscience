@@ -39,7 +39,9 @@ public class Commands extends CommandBase
 
                 + "\n" + AQUA + "/omnipotence nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment")
                 + "\n" + AQUA + "/omnipotence nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
-                + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3");
+                + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3")
+
+                + "\n" + AQUA + "/omnipotence memory" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.memory.comment");
     }
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args)
@@ -58,6 +60,7 @@ public class Commands extends CommandBase
             case 1:
                 result.add("threads");
                 result.add("nbt");
+                result.add("memory");
 
                 if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                 break;
@@ -215,6 +218,10 @@ public class Commands extends CommandBase
                         }
                         break;
                 }
+                break;
+
+            case "memory":
+                notifyCommandListener(sender, this, "omnipotence.literal1", Debug.memData());
                 break;
 
             default:

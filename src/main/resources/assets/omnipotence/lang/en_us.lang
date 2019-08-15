@@ -1,12 +1,14 @@
+omnipotence.literal1=%s
+
 omnipotence.cmd.threads.comment=§dShows info for all threads; id, name, cpu, heap allocation (cpu and heap are running totals; GC removals are not accounted for)
 omnipotence.cmd.threads.comment2=§dShows detailed info for the thread with the given id
 omnipotence.cmd.threads.comment3=§cUNSAFE! - Stops the given thread
+omnipotence.cmd.threads.notFound=§cThread not found: %s
 
 omnipotence.cmd.nbt.comment=§dShows all NBT in the item in your main hand
 omnipotence.cmd.nbt.comment2=§dShows all NBT in YOU
 omnipotence.cmd.nbt.comment3=§cShows all NBT in the nearest entity
-
-omnipotence.cmd.threads.notFound=§cThread not found: %s
-
 omnipotence.cmd.nbt.notPlayer=§cOnly players can use the "nbt" subcommand
 omnipotence.cmd.nbt.noEntityFound=§cNo entities found nearby
+
+omnipotence.memory.comment=§dShows basic JVM memory usage data

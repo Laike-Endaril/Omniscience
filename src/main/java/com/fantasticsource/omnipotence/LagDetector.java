@@ -9,13 +9,13 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.List;
 
 @SideOnly(Side.SERVER)
-public class ServerHangWatchdogDebugger implements Runnable
+public class LagDetector implements Runnable
 {
     private final DedicatedServer server;
     private final long checkTime1, checkTime2;
     private boolean go = true;
 
-    private ServerHangWatchdogDebugger(DedicatedServer server)
+    private LagDetector(DedicatedServer server)
     {
         this.server = server;
         checkTime1 = server.getMaxTickTime() >> 2; //After one quarter of the watchdog time has gone by (15 secs by default)
@@ -24,17 +24,14 @@ public class ServerHangWatchdogDebugger implements Runnable
 
     public static boolean init(MinecraftServer server)
     {
-        if (server instanceof DedicatedServer)
+        DedicatedServer dedicatedServer = (DedicatedServer) server;
+        if (dedicatedServer.getMaxTickTime() > 0L)
         {
-            DedicatedServer dedicatedServer = (DedicatedServer) server;
-            if (dedicatedServer.getMaxTickTime() > 0L)
-            {
-                Thread thread1 = new Thread(new ServerHangWatchdogDebugger(dedicatedServer));
-                thread1.setName("Omnipotence-ServerHangWatchdogDebugger");
-                thread1.setDaemon(true);
-                thread1.start();
-                return true;
-            }
+            Thread thread1 = new Thread(new LagDetector(dedicatedServer));
+            thread1.setName("Omnipotence-LagDetector");
+            thread1.setDaemon(true);
+            thread1.start();
+            return true;
         }
         return false;
     }
@@ -115,7 +112,7 @@ public class ServerHangWatchdogDebugger implements Runnable
     private String getProfilerResults()
     {
         StringBuilder stringbuilder = new StringBuilder();
-        stringbuilder.append("---- ServerHangWatchdogDebugger Profiler Results ----\n");
+        stringbuilder.append("---- LagDetector Profiler Results ----\n");
         stringbuilder.append("// ");
         stringbuilder.append("Enter Witty Comment Here");
         stringbuilder.append("\n\n");
