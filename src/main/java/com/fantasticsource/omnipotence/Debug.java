@@ -148,6 +148,14 @@ public class Debug
         ASMifier.main(new String[]{fullClassname});
     }
 
+    public static String memData()
+    {
+        Runtime runtime = Runtime.getRuntime();
+
+        long max = runtime.maxMemory(), free = runtime.freeMemory(), total = runtime.totalMemory(), currentUsed = total - free;
+        return "MEMORY ... Current: " + currentUsed + "/" + total + " (~" + (int) ((double) currentUsed / total * 100) + "%) ... Max: " + total + "/" + max + " (~" + (int) ((double) total / max * 100) + "%)";
+    }
+
     public static int processID()
     {
         String s = runtimeBean.getName();

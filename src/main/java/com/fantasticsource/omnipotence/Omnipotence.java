@@ -34,6 +34,8 @@ public class Omnipotence
     {
         event.registerServerCommand(new Commands());
 
+        System.out.println(Debug.memData());
+
 //        java.lang.ArrayIndexOutOfBoundsException: -1
 //        at java.util.ArrayList.elementData(ArrayList.java:422)
 //        at java.util.ArrayList.get(ArrayList.java:435)
