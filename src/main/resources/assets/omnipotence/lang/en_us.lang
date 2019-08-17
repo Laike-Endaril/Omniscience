@@ -12,3 +12,5 @@ omnipotence.cmd.nbt.notPlayer=§cOnly players can use the "nbt" subcommand
 omnipotence.cmd.nbt.noEntityFound=§cNo entities found nearby
 
 omnipotence.memory.comment=§dShows basic JVM memory usage data
+
+omnipotence.entities.comment=§dShows how many entities are currently loaded

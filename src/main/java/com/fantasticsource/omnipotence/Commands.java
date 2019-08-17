@@ -9,10 +9,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.translation.I18n;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static net.minecraft.util.text.TextFormatting.AQUA;
 import static net.minecraft.util.text.TextFormatting.WHITE;
@@ -41,7 +45,9 @@ public class Commands extends CommandBase
                 + "\n" + AQUA + "/omnipotence nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
                 + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3")
 
-                + "\n" + AQUA + "/omnipotence memory" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.memory.comment");
+                + "\n" + AQUA + "/omnipotence memory" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.memory.comment")
+
+                + "\n" + AQUA + "/omnipotence entities" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.entities.comment");
     }
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args)
@@ -61,6 +67,7 @@ public class Commands extends CommandBase
                 result.add("threads");
                 result.add("nbt");
                 result.add("memory");
+                result.add("entities");
 
                 if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                 break;
@@ -222,6 +229,37 @@ public class Commands extends CommandBase
 
             case "memory":
                 notifyCommandListener(sender, this, "omnipotence.literal1", Debug.memData());
+                break;
+
+            case "entities":
+                int players;
+                LinkedHashMap<Class, int[]> classCounts = new LinkedHashMap<>();
+                for (WorldServer world : FMLCommonHandler.instance().getMinecraftServerInstance().worlds)
+                {
+                    sender.sendMessage(new TextComponentString(""));
+
+                    players = world.playerEntities.size();
+                    sender.sendMessage(new TextComponentString(world.getWorldInfo().getWorldName() + " (" + world.provider.getDimension() + "): " + world.loadedEntityList.size() + " (" + players + (players == 1 ? " player)" : " players)")));
+
+                    classCounts.clear();
+                    for (Entity entity : world.loadedEntityList)
+                    {
+                        classCounts.computeIfAbsent(entity.getClass(), o -> new int[]{0})[0]++;
+                    }
+
+                    int max = 0;
+                    Class maxClass = null;
+                    for (Map.Entry<Class, int[]> entry : classCounts.entrySet())
+                    {
+                        if (entry.getValue()[0] > max)
+                        {
+                            max = entry.getValue()[0];
+                            maxClass = entry.getKey();
+                        }
+                    }
+
+                    if (max > 0) sender.sendMessage(new TextComponentString("Highest count: " + maxClass.getName() + " (" + max + ")"));
+                }
                 break;
 
             default:
