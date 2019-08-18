@@ -6,7 +6,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -36,8 +38,12 @@ public class Omnipotence
         event.registerServerCommand(new Commands());
 
         System.out.println(Debug.memData());
+    }
 
-        MinecraftServer server = event.getServer();
+    @Mod.EventHandler
+    public static void serverStarted(FMLServerStartedEvent event)
+    {
+        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
         if (server.isDedicatedServer())
         {
             if (LagDetector.init(server)) System.out.println("Starting LagDetector");

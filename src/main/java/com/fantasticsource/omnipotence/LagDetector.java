@@ -3,6 +3,7 @@ package com.fantasticsource.omnipotence;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -12,14 +13,12 @@ import java.util.List;
 public class LagDetector implements Runnable
 {
     private final DedicatedServer server;
-    private final long checkTime1, checkTime2;
+    private final long[] checkTimes = new long[]{1000, 5000, 10000};
     private boolean go = true;
 
     private LagDetector(DedicatedServer server)
     {
         this.server = server;
-        checkTime1 = server.getMaxTickTime() >> 2; //After one quarter of the watchdog time has gone by (15 secs by default)
-        checkTime2 = server.getMaxTickTime() >> 1; //After one half of the watchdog time has gone by (30 secs by default)
     }
 
     public static boolean init(MinecraftServer server)
@@ -42,12 +41,11 @@ public class LagDetector implements Runnable
         {
             long i = server.getCurrentTime();
             long j = MinecraftServer.getCurrentTimeMillis();
-            long k = j - i;
+            long tickTime = j - i;
 
-            if (k >= checkTime2)
+            if (tickTime >= checkTimes[2])
             {
-                System.out.println("Over 1/2 the watchdog timeout has passed since last tick!");
-
+                System.out.println(TextFormatting.RED + "One tick has taken " + ((double) tickTime / 1000) + "seconds so far!");
                 System.out.println(Debug.memData());
 
 //                  java.lang.ArrayIndexOutOfBoundsException: -1
@@ -78,10 +76,22 @@ public class LagDetector implements Runnable
 
                 go = false;
             }
-            else if (k >= checkTime1)
+            else if (tickTime >= checkTimes[1])
             {
-                System.out.println("Over 1/4 the watchdog timeout has passed since last tick!");
+                System.out.println(TextFormatting.RED + "One tick has taken " + ((double) tickTime / 1000) + "seconds so far!");
+                System.out.println(Debug.memData());
 
+                try
+                {
+                    Thread.sleep(i + checkTimes[2] - j);
+                }
+                catch (InterruptedException e)
+                {
+                }
+            }
+            else if (tickTime >= checkTimes[0])
+            {
+                System.out.println(TextFormatting.RED + "One tick has taken " + ((double) tickTime / 1000) + "seconds so far!");
                 System.out.println(Debug.memData());
 
                 //TODO Need to fix this before re-enabling it!  See stacktrace above!  Might be due to cross-thread dysync in the profiler calls
@@ -90,7 +100,7 @@ public class LagDetector implements Runnable
 
                 try
                 {
-                    Thread.sleep(i + checkTime2 - j);
+                    Thread.sleep(i + checkTimes[1] - j);
                 }
                 catch (InterruptedException e)
                 {
@@ -100,7 +110,7 @@ public class LagDetector implements Runnable
             {
                 try
                 {
-                    Thread.sleep(i + checkTime1 - j);
+                    Thread.sleep(i + checkTimes[0] - j);
                 }
                 catch (InterruptedException e)
                 {
