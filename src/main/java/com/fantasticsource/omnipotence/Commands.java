@@ -50,6 +50,16 @@ public class Commands extends CommandBase
                 + "\n" + AQUA + "/omnipotence entities" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.entities.comment");
     }
 
+    @Override
+    public List<String> getAliases()
+    {
+        ArrayList<String> names = new ArrayList<>();
+
+        names.add("omni");
+
+        return names;
+    }
+
     public void execute(MinecraftServer server, ICommandSender sender, String[] args)
     {
         if (args.length == 0) sender.getCommandSenderEntity().sendMessage(new TextComponentString(getUsage(sender)));
