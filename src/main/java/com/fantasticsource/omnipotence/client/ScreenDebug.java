@@ -4,6 +4,7 @@ import com.fantasticsource.tools.Timestamp;
 import com.fantasticsource.tools.datastructures.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -27,8 +28,12 @@ public class ScreenDebug
             double dif = (double) (now.getInstant().toEpochMilli() - ts.getInstant().toEpochMilli()) / 1000;
 
             GuiScreen screen = pair.getValue();
-            Minecraft.getMinecraft().player.sendMessage(new TextComponentString(TextFormatting.LIGHT_PURPLE + ts.toString(false, true, false) + TextFormatting.GOLD + "(" + dif + " secs ago)" + TextFormatting.WHITE + " ..."));
-            Minecraft.getMinecraft().player.sendMessage(new TextComponentString(TextFormatting.GREEN + (screen == null ? "null" : screen.getClass().getName())));
+            EntityPlayer player = Minecraft.getMinecraft().player;
+            if (player != null)
+            {
+                player.sendMessage(new TextComponentString(TextFormatting.LIGHT_PURPLE + ts.toString(false, true, false) + TextFormatting.GOLD + "(" + dif + " secs ago)" + TextFormatting.WHITE + " ..."));
+                player.sendMessage(new TextComponentString(TextFormatting.GREEN + (screen == null ? "null" : screen.getClass().getName())));
+            }
         }
     }
 
@@ -48,8 +53,12 @@ public class ScreenDebug
                 {
                     GuiScreen screen = pair.getValue();
                     Timestamp ts = pair.getKey();
-                    Minecraft.getMinecraft().player.sendMessage(new TextComponentString(TextFormatting.LIGHT_PURPLE + ts.toString(false, true, false) + TextFormatting.WHITE + " ..."));
-                    Minecraft.getMinecraft().player.sendMessage(new TextComponentString(TextFormatting.GREEN + (screen == null ? "null" : screen.getClass().getName())));
+                    EntityPlayer player = Minecraft.getMinecraft().player;
+                    if (player != null)
+                    {
+                        player.sendMessage(new TextComponentString(TextFormatting.LIGHT_PURPLE + ts.toString(false, true, false) + TextFormatting.WHITE + " ..."));
+                        player.sendMessage(new TextComponentString(TextFormatting.GREEN + (screen == null ? "null" : screen.getClass().getName())));
+                    }
                 }
             }
         }
