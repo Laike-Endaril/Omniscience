@@ -13,16 +13,21 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.minecraft.util.text.TextFormatting.AQUA;
 import static net.minecraft.util.text.TextFormatting.WHITE;
 
 public class Commands extends CommandBase
 {
+    private static final ArrayList<String> subcommands = new ArrayList<>();
+
+    static
+    {
+        subcommands.addAll(Arrays.asList("threads", "nbt", "screens", "memory", "entities", "pathing"));
+    }
+
+
     @Override
     public String getName()
     {
@@ -42,6 +47,8 @@ public class Commands extends CommandBase
 
     public String subUsage(String subcommand)
     {
+        if (!subcommands.contains(subcommand)) return AQUA + "/omnipotence <threads | nbt | memory | entities | pathing>";
+
         switch (subcommand)
         {
             case "threads":
@@ -54,14 +61,9 @@ public class Commands extends CommandBase
                         + "\n" + AQUA + "/omnipotence nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
                         + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3");
 
-            case "memory":
-                return AQUA + "/omnipotence memory" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.memory.comment");
-
-            case "entities":
-                return AQUA + "/omnipotence entities" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.entities.comment");
+            default:
+                return AQUA + "/omnipotence " + subcommand + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd." + subcommand + ".comment");
         }
-
-        return AQUA + "/omnipotence <threads | nbt | memory | entities | pathing>";
     }
 
     @Override
@@ -88,11 +90,7 @@ public class Commands extends CommandBase
         switch (args.length)
         {
             case 1:
-                result.add("threads");
-                result.add("nbt");
-                result.add("memory");
-                result.add("entities");
-
+                result.addAll(subcommands);
                 if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                 break;
 
@@ -159,14 +157,14 @@ public class Commands extends CommandBase
 
                     if (id == -1)
                     {
-                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
+                        notifyCommandListener(sender, this, Omnipotence.MODID + ".error.threads.notFound", args[1]);
                         return;
                     }
 
                     Thread thread = Debug.getThread(id);
                     if (thread == null)
                     {
-                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.threads.notFound", args[1]);
+                        notifyCommandListener(sender, this, Omnipotence.MODID + ".error.threads.notFound", args[1]);
                         return;
                     }
 
@@ -212,7 +210,7 @@ public class Commands extends CommandBase
                     case 2:
                         if (!(sender instanceof EntityPlayerMP))
                         {
-                            notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.nbt.notPlayer");
+                            notifyCommandListener(sender, this, Omnipotence.MODID + ".error.nbt.notPlayer");
                             return;
                         }
 
@@ -242,7 +240,7 @@ public class Commands extends CommandBase
                                     notifyNBT(sender, entity.writeToNBT(new NBTTagCompound()));
                                     notifyCommandListener(sender, this, "");
                                 }
-                                else notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.nbt.noEntityFound");
+                                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.nbt.noEntityFound");
                                 break;
 
                             default:
