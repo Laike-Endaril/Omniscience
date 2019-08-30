@@ -37,17 +37,31 @@ public class Commands extends CommandBase
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return AQUA + "/omnipotence threads" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment")
-                + "\n" + AQUA + "/omnipotence threads <id>" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment2")
-                + "\n" + AQUA + "/omnipotence threads <id> stop" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment3")
+        return subUsage("");
+    }
 
-                + "\n" + AQUA + "/omnipotence nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment")
-                + "\n" + AQUA + "/omnipotence nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
-                + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3")
+    public String subUsage(String subcommand)
+    {
+        switch (subcommand)
+        {
+            case "threads":
+                return AQUA + "/omnipotence threads" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment")
+                        + "\n" + AQUA + "/omnipotence threads <id>" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment2")
+                        + "\n" + AQUA + "/omnipotence threads <id> stop" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment3");
 
-                + "\n" + AQUA + "/omnipotence memory" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.memory.comment")
+            case "nbt":
+                return AQUA + "/omnipotence nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment")
+                        + "\n" + AQUA + "/omnipotence nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
+                        + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3");
 
-                + "\n" + AQUA + "/omnipotence entities" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.entities.comment");
+            case "memory":
+                return AQUA + "/omnipotence memory" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.memory.comment");
+
+            case "entities":
+                return AQUA + "/omnipotence entities" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.entities.comment");
+        }
+
+        return AQUA + "/omnipotence <threads | nbt | memory | entities | pathing>";
     }
 
     @Override
@@ -62,7 +76,7 @@ public class Commands extends CommandBase
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args)
     {
-        if (args.length == 0) sender.getCommandSenderEntity().sendMessage(new TextComponentString(getUsage(sender)));
+        if (args.length == 0) sender.getCommandSenderEntity().sendMessage(new TextComponentString(subUsage("")));
         else subCommand(sender, args);
     }
 
@@ -180,10 +194,10 @@ public class Commands extends CommandBase
                             thread.stop();
                             notifyCommandListener(sender, this, "Stopping thread " + id + " (" + thread.getName() + ")");
                         }
-                        else notifyCommandListener(sender, this, getUsage(sender));
+                        else notifyCommandListener(sender, this, subUsage(cmd));
                     }
                 }
-                else notifyCommandListener(sender, this, getUsage(sender));
+                else notifyCommandListener(sender, this, subUsage(cmd));
                 break;
 
             case "nbt":
@@ -273,7 +287,7 @@ public class Commands extends CommandBase
                 break;
 
             default:
-                notifyCommandListener(sender, this, getUsage(sender));
+                notifyCommandListener(sender, this, subUsage(cmd));
         }
     }
 
