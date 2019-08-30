@@ -24,7 +24,7 @@ public class Commands extends CommandBase
 
     static
     {
-        subcommands.addAll(Arrays.asList("threads", "nbt", "screens", "memory", "entities", "pathing"));
+        subcommands.addAll(Arrays.asList("threads", "nbt", "memory", "entities", "pathing"));
     }
 
 
@@ -198,6 +198,7 @@ public class Commands extends CommandBase
                 else notifyCommandListener(sender, this, subUsage(cmd));
                 break;
 
+
             case "nbt":
                 switch (args.length)
                 {
@@ -249,9 +250,11 @@ public class Commands extends CommandBase
                 }
                 break;
 
+
             case "memory":
                 notifyCommandListener(sender, this, "omnipotence.literal1", Debug.memData());
                 break;
+
 
             case "entities":
                 int players;
@@ -283,6 +286,7 @@ public class Commands extends CommandBase
                     if (max > 0) sender.sendMessage(new TextComponentString("Highest count: " + maxClass.getName() + " (" + max + ")"));
                 }
                 break;
+
 
             default:
                 notifyCommandListener(sender, this, subUsage(cmd));

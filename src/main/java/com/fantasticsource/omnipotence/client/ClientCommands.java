@@ -56,7 +56,7 @@ public class ClientCommands extends CommandBase implements IClientCommand
     @Override
     public String getUsage(ICommandSender sender)
     {
-        return AQUA + "/omnipotence screens" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.screens.comment");
+        return AQUA + "/omnipotenceclient screens" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.screens.comment");
     }
 
     @Override
