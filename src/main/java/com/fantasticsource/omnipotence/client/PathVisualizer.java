@@ -2,10 +2,12 @@ package com.fantasticsource.omnipotence.client;
 
 import com.fantasticsource.omnipotence.Network;
 import com.fantasticsource.tools.TrigLookupTable;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathPoint;
@@ -81,26 +83,32 @@ public class PathVisualizer
 
             GlStateManager.glEnd();
 
-
             GlStateManager.popMatrix();
 
 
             //Path render
+            GlStateManager.pushMatrix();
+            EntityPlayer player = Minecraft.getMinecraft().player;
+
+            double partialTick = event.getPartialRenderTick();
+            double dx = player.prevPosX + (player.posX - player.prevPosX) * partialTick;
+            double dy = player.prevPosY + (player.posY - player.prevPosY) * partialTick;
+            double dz = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTick;
+
+            GlStateManager.translate(0.5 - dx, 0.5 - dy, 0.5 - dz);
+
             GlStateManager.glBegin(GL11.GL_LINE_STRIP);
 
-            float offX = (float) (event.getX() - entity.posX + 0.5);
-            float offY = (float) (event.getY() - entity.posY + 0.5);
-            float offZ = (float) (event.getZ() - entity.posZ + 0.5);
-//            System.out.println(offX + ", " + offY + ", " + offZ);
-            System.out.println(event.getX() + ", " + event.getY() + ", " + event.getZ());
-            GlStateManager.glVertex3f((float) event.getX(), (float) event.getY() + 0.5f, (float) event.getZ());
+            GlStateManager.glVertex3f((float) (event.getX() + dx - 0.5), (float) (event.getY() + dy), (float) (event.getZ() + dz - 0.5));
             for (int i = 0; i < path.getCurrentPathLength(); i++)
             {
                 PathPoint point = path.getPathPointFromIndex(i);
-                GlStateManager.glVertex3f(point.x + offX, point.y + offY, point.z + offZ);
+                GlStateManager.glVertex3f(point.x, point.y, point.z);
             }
 
             GlStateManager.glEnd();
+
+            GlStateManager.popMatrix();
         }
         GlStateManager.enableTexture2D();
         GlStateManager.enableLighting();
