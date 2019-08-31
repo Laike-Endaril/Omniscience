@@ -59,6 +59,7 @@ public class PathVisualizer
         GlStateManager.glLineWidth(1);
     }
 
+    @SideOnly(Side.CLIENT)
     private static void renderPath(Path path, RenderLivingEvent.Post event, Entity entity)
     {
         if (path == null || path.getCurrentPathLength() == 0)
@@ -149,6 +150,7 @@ public class PathVisualizer
         }
     }
 
+    @SideOnly(Side.CLIENT)
     private static void renderSphereWireframe(double radius, int granularity)
     {
         GlStateManager.glBegin(GL11.GL_LINE_STRIP);
