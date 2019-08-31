@@ -1,8 +1,10 @@
 package com.fantasticsource.omnipotence;
 
+import com.fantasticsource.omnipotence.client.PathVisualizer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
@@ -20,7 +22,7 @@ import static net.minecraft.util.text.TextFormatting.WHITE;
 
 public class Commands extends CommandBase
 {
-    private static final ArrayList<String> subcommands = new ArrayList<>();
+    private static ArrayList<String> subcommands = new ArrayList<>();
 
     static
     {
@@ -241,7 +243,7 @@ public class Commands extends CommandBase
                                     notifyNBT(sender, entity.writeToNBT(new NBTTagCompound()));
                                     notifyCommandListener(sender, this, "");
                                 }
-                                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.nbt.noEntityFound");
+                                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.noEntityFound");
                                 break;
 
                             default:
@@ -285,6 +287,28 @@ public class Commands extends CommandBase
 
                     if (max > 0) sender.sendMessage(new TextComponentString("Highest count: " + maxClass.getName() + " (" + max + ")"));
                 }
+                break;
+
+
+            case "pathing":
+                EntityPlayerMP player = (EntityPlayerMP) sender;
+                Entity entity = player.world.findNearestEntityWithinAABB(EntityLiving.class, player.getEntityBoundingBox().grow(100), player);
+                if (entity != null)
+                {
+                    BlockPos pos = entity.getPosition();
+                    ArrayList<Integer> trackedEntities = PathVisualizer.pathTrackedEntities.get(player);
+                    if (trackedEntities == null || !trackedEntities.contains(entity.getEntityId()))
+                    {
+                        FMLCommonHandler.instance().getMinecraftServerInstance().addScheduledTask(() -> PathVisualizer.pathTrackedEntities.computeIfAbsent(player, o -> new ArrayList<>()).add(entity.getEntityId()));
+                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.start", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
+                    }
+                    else
+                    {
+                        trackedEntities.remove(entity.getEntityId());
+                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.stop", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
+                    }
+                }
+                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.noEntityFound");
                 break;
 
 

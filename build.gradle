@@ -77,10 +77,13 @@ processResources {
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+
+    rename '(omnipotence_at.cfg)', 'META-INF/$1'
 }
 
 jar {
     manifest {
+        attributes 'FMLAT': 'omnipotence_at.cfg'
         attributes 'Agent-Class': 'com.fantasticsource.omnipotence.transforms.AgentTest'
         attributes 'Can-Retransform-Classes': 'true'
         attributes 'Premain-Class': 'com.fantasticsource.omnipotence.transforms.AgentTest'

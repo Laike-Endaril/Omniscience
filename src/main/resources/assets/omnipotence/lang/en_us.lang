@@ -17,10 +17,12 @@ omnipotence.cmd.memory.comment=§dShows basic JVM memory usage data
 omnipotence.cmd.entities.comment=§dShows how many entities are currently loaded
 
 omnipotence.cmd.pathing.comment=§dShows or hides the path of the nearest entity
+omnipotence.cmd.pathing.start=§aPathing is now visible for %s @ %s, %s, %s
+omnipotence.cmd.pathing.stop=§cPathing is no longer visible for %s @ %s, %s, %s
 
 
 
 omnipotence.error.threads.notFound=§cThread not found: %s
 
 omnipotence.error.nbt.notPlayer=§cOnly players can use the "nbt" subcommand
-omnipotence.error.nbt.noEntityFound=§cNo entities found nearby
+omnipotence.error.noEntityFound=§cNo entities found nearby

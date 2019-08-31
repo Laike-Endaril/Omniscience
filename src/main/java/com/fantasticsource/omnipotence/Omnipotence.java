@@ -2,6 +2,7 @@ package com.fantasticsource.omnipotence;
 
 import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omnipotence.client.ClientCommands;
+import com.fantasticsource.omnipotence.client.PathVisualizer;
 import com.fantasticsource.omnipotence.client.ScreenDebug;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -27,7 +28,9 @@ public class Omnipotence
     {
         MinecraftForge.EVENT_BUS.register(Omnipotence.class);
         MinecraftForge.EVENT_BUS.register(ServerTickTimer.class);
+        MinecraftForge.EVENT_BUS.register(PathVisualizer.class);
         Debug.init();
+        Network.init();
 
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT)
         {
