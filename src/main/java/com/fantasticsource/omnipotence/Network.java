@@ -63,6 +63,8 @@ public class Network
                         buf.writeInt(point.y);
                         buf.writeInt(point.z);
                     }
+
+                    if (size > 0) buf.writeInt(path.getCurrentPathIndex());
                 }
             }
         }
@@ -74,13 +76,20 @@ public class Network
             for (int i = buf.readInt(); i > 0; i--)
             {
                 int id = buf.readInt();
-                ArrayList<PathPoint> pathPoints = new ArrayList<>();
-                for (int i2 = buf.readInt(); i2 > 0; i2--)
+                int size = buf.readInt();
+                if (size > 0)
                 {
-                    pathPoints.add(new PathPoint(buf.readInt(), buf.readInt(), buf.readInt()));
-                }
+                    ArrayList<PathPoint> pathPoints = new ArrayList<>();
+                    for (int i2 = size; i2 > 0; i2--)
+                    {
+                        pathPoints.add(new PathPoint(buf.readInt(), buf.readInt(), buf.readInt()));
+                    }
 
-                data.put(id, pathPoints.size() == 0 ? null : new Path(pathPoints.toArray(new PathPoint[0])));
+                    Path path = new Path(pathPoints.toArray(new PathPoint[0]));
+                    path.setCurrentPathIndex(buf.readInt());
+                    data.put(id, path);
+                }
+                else data.put(id, null);
             }
         }
     }

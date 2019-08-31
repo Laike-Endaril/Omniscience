@@ -40,53 +40,52 @@ public class PathVisualizer
         if (!(entity instanceof EntityLiving)) return;
         if (!entityPaths.containsKey(entity.getEntityId())) return;
 
-        Path path = entityPaths.get(entity.getEntityId());
 
         GlStateManager.disableLighting();
         GlStateManager.disableTexture2D();
+        GlStateManager.glLineWidth(3);
+
+
+        Path path = entityPaths.get(entity.getEntityId());
+        renderPath(path, event, entity);
+        GlStateManager.disableDepth();
+        renderPath(path, event, entity);
+        GlStateManager.enableDepth();
+
+
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableLighting();
+        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.glLineWidth(1);
+    }
+
+    private static void renderPath(Path path, RenderLivingEvent.Post event, Entity entity)
+    {
         if (path == null || path.getCurrentPathLength() == 0)
         {
             //Basic "has no path" indicator
-            GlStateManager.color(1, 0, 0, 1);
             GlStateManager.pushMatrix();
             GlStateManager.translate(event.getX(), event.getY() + entity.height / 2, event.getZ());
 
-
-            GlStateManager.glBegin(GL11.GL_LINE_STRIP);
-
-            double radius = 1;
-            for (double theta = 0; theta < Math.PI * 2 + (Math.PI * 2 / 32); theta += Math.PI * 2 / 32)
-            {
-                GlStateManager.glVertex3f((float) (radius * trig.cos(theta)), 0, (float) (radius * -trig.sin(theta)));
-            }
-
-            GlStateManager.glEnd();
-
+            GlStateManager.color(1, 0, 0, 1);
+            renderSphereWireframe(0.25, 16);
 
             GlStateManager.popMatrix();
         }
         else
         {
             //Basic "has path" indicator
-            GlStateManager.color(0, 1, 0, 1);
             GlStateManager.pushMatrix();
             GlStateManager.translate(event.getX(), event.getY() + entity.height / 2, event.getZ());
 
-
-            GlStateManager.glBegin(GL11.GL_LINE_STRIP);
-
-            double radius = 1;
-            for (double theta = 0; theta < Math.PI * 2 + (Math.PI * 2 / 32); theta += Math.PI * 2 / 32)
-            {
-                GlStateManager.glVertex3f((float) (radius * trig.cos(theta)), 0, (float) (radius * -trig.sin(theta)));
-            }
-
-            GlStateManager.glEnd();
+            GlStateManager.color(0, 1, 0, 1);
+            renderSphereWireframe(0.25, 16);
 
             GlStateManager.popMatrix();
 
 
             //Path render
+            PathPoint point;
             GlStateManager.pushMatrix();
             EntityPlayer player = Minecraft.getMinecraft().player;
 
@@ -97,21 +96,80 @@ public class PathVisualizer
 
             GlStateManager.translate(0.5 - dx, 0.5 - dy, 0.5 - dz);
 
-            GlStateManager.glBegin(GL11.GL_LINE_STRIP);
 
-            GlStateManager.glVertex3f((float) (event.getX() + dx - 0.5), (float) (event.getY() + dy), (float) (event.getZ() + dz - 0.5));
-            for (int i = 0; i < path.getCurrentPathLength(); i++)
+            //Previous path points
+            GlStateManager.color(0.7f, 0.7f, 0.7f, 1);
+            GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+            int i = 0;
+            for (; i < path.getCurrentPathIndex(); i++)
             {
-                PathPoint point = path.getPathPointFromIndex(i);
+                point = path.getPathPointFromIndex(i);
                 GlStateManager.glVertex3f(point.x, point.y, point.z);
             }
-
             GlStateManager.glEnd();
+
+
+            if (i < path.getCurrentPathLength())
+            {
+                //In-progress path line
+                if (i > 0)
+                {
+                    GlStateManager.color(0, 0, 1, 1);
+                    GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+                    point = path.getPathPointFromIndex(i - 1);
+                    GlStateManager.glVertex3f(point.x, point.y, point.z);
+                    point = path.getPathPointFromIndex(i);
+                    GlStateManager.glVertex3f(point.x, point.y, point.z);
+                    GlStateManager.glEnd();
+                }
+
+
+                //Lead-in line
+                GlStateManager.color(0, 1, 1, 1);
+                GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+                GlStateManager.glVertex3f((float) (event.getX() + dx - 0.5), (float) (event.getY() + dy), (float) (event.getZ() + dz - 0.5));
+                point = path.getPathPointFromIndex(i);
+                GlStateManager.glVertex3f(point.x, point.y, point.z);
+                GlStateManager.glEnd();
+
+
+                //Remaining path lines
+                GlStateManager.color(1, 0.8f, 0, 1);
+                GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+                for (; i < path.getCurrentPathLength(); i++)
+                {
+                    point = path.getPathPointFromIndex(i);
+                    GlStateManager.glVertex3f(point.x, point.y, point.z);
+                }
+                GlStateManager.glEnd();
+            }
+
 
             GlStateManager.popMatrix();
         }
-        GlStateManager.enableTexture2D();
-        GlStateManager.enableLighting();
+    }
+
+    private static void renderSphereWireframe(double radius, int granularity)
+    {
+        GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+        for (double theta = 0; theta < Math.PI * 2; theta += Math.PI * 2 / granularity)
+        {
+            GlStateManager.glVertex3f((float) (radius * trig.cos(theta)), 0, (float) (radius * -trig.sin(theta)));
+        }
+        for (double theta = 0; theta < Math.PI * 2; theta += Math.PI * 2 / granularity)
+        {
+            GlStateManager.glVertex3f((float) (radius * trig.cos(theta)), (float) (radius * -trig.sin(theta)), 0);
+        }
+        GlStateManager.glVertex3f((float) radius, 0, 0);
+        GlStateManager.glEnd();
+
+        GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+        for (double theta = 0; theta < Math.PI * 2; theta += Math.PI * 2 / granularity)
+        {
+            GlStateManager.glVertex3f(0, (float) (radius * trig.cos(theta)), (float) (radius * -trig.sin(theta)));
+        }
+        GlStateManager.glVertex3f(0, (float) radius, 0);
+        GlStateManager.glEnd();
     }
 
     @SideOnly(Side.CLIENT)
