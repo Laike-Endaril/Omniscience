@@ -304,7 +304,7 @@ public class Commands extends CommandBase
                     }
                     else
                     {
-                        trackedEntities.remove(entity.getEntityId());
+                        trackedEntities.remove((Integer) entity.getEntityId());
                         notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.stop", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
                     }
                 }

@@ -8,6 +8,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.pathfinding.Path;
+import net.minecraft.pathfinding.PathPoint;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -41,8 +42,9 @@ public class PathVisualizer
 
         GlStateManager.disableLighting();
         GlStateManager.disableTexture2D();
-        if (path == null)
+        if (path == null || path.getCurrentPathLength() == 0)
         {
+            //Basic "has no path" indicator
             GlStateManager.color(1, 0, 0, 1);
             GlStateManager.pushMatrix();
             GlStateManager.translate(event.getX(), event.getY() + entity.height / 2, event.getZ());
@@ -63,6 +65,7 @@ public class PathVisualizer
         }
         else
         {
+            //Basic "has path" indicator
             GlStateManager.color(0, 1, 0, 1);
             GlStateManager.pushMatrix();
             GlStateManager.translate(event.getX(), event.getY() + entity.height / 2, event.getZ());
@@ -80,6 +83,24 @@ public class PathVisualizer
 
 
             GlStateManager.popMatrix();
+
+
+            //Path render
+            GlStateManager.glBegin(GL11.GL_LINE_STRIP);
+
+            float offX = (float) (event.getX() - entity.posX + 0.5);
+            float offY = (float) (event.getY() - entity.posY + 0.5);
+            float offZ = (float) (event.getZ() - entity.posZ + 0.5);
+//            System.out.println(offX + ", " + offY + ", " + offZ);
+            System.out.println(event.getX() + ", " + event.getY() + ", " + event.getZ());
+            GlStateManager.glVertex3f((float) event.getX(), (float) event.getY() + 0.5f, (float) event.getZ());
+            for (int i = 0; i < path.getCurrentPathLength(); i++)
+            {
+                PathPoint point = path.getPathPointFromIndex(i);
+                GlStateManager.glVertex3f(point.x + offX, point.y + offY, point.z + offZ);
+            }
+
+            GlStateManager.glEnd();
         }
         GlStateManager.enableTexture2D();
         GlStateManager.enableLighting();
@@ -112,7 +133,7 @@ public class PathVisualizer
                         Entity entity = player.world.getEntityByID(i);
                         if (!(entity instanceof EntityLiving))
                         {
-                            ids.remove(i);
+                            ids.remove((Integer) i);
                             if (ids.size() == 0) pathTrackedEntities.remove(player);
                             continue;
                         }
