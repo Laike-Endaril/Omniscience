@@ -1,5 +1,6 @@
 package com.fantasticsource.omnipotence;
 
+import com.fantasticsource.mctools.MCTools;
 import com.fantasticsource.omnipotence.client.PathVisualizer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -319,38 +320,9 @@ public class Commands extends CommandBase
 
     private void notifyNBT(ICommandSender sender, NBTTagCompound compound)
     {
-        char[] chars = compound.toString().toCharArray();
-        String current = "";
-        String indent = "";
-        for (int i = 0; i < chars.length; i++)
+        for (String s : MCTools.legibleNBT(compound))
         {
-            char c = chars[i];
-            switch (c)
-            {
-                case '{':
-                case '[':
-                    if (!current.equals("")) notifyCommandListener(sender, this, indent + current);
-                    notifyCommandListener(sender, this, indent + c);
-                    current = "";
-                    indent += " ";
-                    break;
-
-                case '}':
-                case ']':
-                    if (!current.equals("")) notifyCommandListener(sender, this, indent + current);
-                    indent = indent.substring(0, indent.length() - 1);
-                    notifyCommandListener(sender, this, indent + c + (i + 1 < chars.length && chars[i + 1] == ',' ? ',' : ""));
-                    current = "";
-                    break;
-
-                case ',':
-                    if (!current.equals("")) notifyCommandListener(sender, this, indent + current + c);
-                    current = "";
-                    break;
-
-                default:
-                    current += c;
-            }
+            notifyCommandListener(sender, this, s);
         }
     }
 }
