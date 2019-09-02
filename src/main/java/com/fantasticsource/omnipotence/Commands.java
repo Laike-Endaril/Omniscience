@@ -27,7 +27,7 @@ public class Commands extends CommandBase
 
     static
     {
-        subcommands.addAll(Arrays.asList("threads", "nbt", "memory", "entities", "pathing"));
+        subcommands.addAll(Arrays.asList("threads", "nbt", "memory", "entities", "pathing", "ai"));
     }
 
 
@@ -50,7 +50,13 @@ public class Commands extends CommandBase
 
     public String subUsage(String subcommand)
     {
-        if (!subcommands.contains(subcommand)) return AQUA + "/omnipotence <threads | nbt | memory | entities | pathing>";
+        if (!subcommands.contains(subcommand))
+        {
+            StringBuilder s = new StringBuilder(AQUA + "/omnipotence <" + subcommands.get(0));
+            for (int i = 1; i < subcommands.size(); i++) s.append(" | ").append(subcommands.get(i));
+            s.append(">");
+            return s.toString();
+        }
 
         switch (subcommand)
         {
@@ -214,7 +220,7 @@ public class Commands extends CommandBase
                     case 2:
                         if (!(sender instanceof EntityPlayerMP))
                         {
-                            notifyCommandListener(sender, this, Omnipotence.MODID + ".error.nbt.notPlayer");
+                            notifyCommandListener(sender, this, Omnipotence.MODID + ".error.notPlayer", cmd);
                             return;
                         }
 
@@ -292,25 +298,48 @@ public class Commands extends CommandBase
 
 
             case "pathing":
-                EntityPlayerMP player = (EntityPlayerMP) sender;
-                Entity entity = player.world.findNearestEntityWithinAABB(EntityLiving.class, player.getEntityBoundingBox().grow(100), player);
-                if (entity != null)
+            {
+                if (sender instanceof EntityPlayerMP)
                 {
-                    BlockPos pos = entity.getPosition();
-                    ArrayList<Integer> trackedEntities = PathVisualizer.pathTrackedEntities.get(player);
-                    if (trackedEntities == null || !trackedEntities.contains(entity.getEntityId()))
+                    EntityPlayerMP player = (EntityPlayerMP) sender;
+                    Entity entity = player.world.findNearestEntityWithinAABB(EntityLiving.class, player.getEntityBoundingBox().grow(100), player);
+                    if (entity != null)
                     {
-                        FMLCommonHandler.instance().getMinecraftServerInstance().addScheduledTask(() -> PathVisualizer.pathTrackedEntities.computeIfAbsent(player, o -> new ArrayList<>()).add(entity.getEntityId()));
-                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.start", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
+                        BlockPos pos = entity.getPosition();
+                        ArrayList<Integer> trackedEntities = PathVisualizer.pathTrackedEntities.get(player);
+                        if (trackedEntities == null || !trackedEntities.contains(entity.getEntityId()))
+                        {
+                            FMLCommonHandler.instance().getMinecraftServerInstance().addScheduledTask(() -> PathVisualizer.pathTrackedEntities.computeIfAbsent(player, o -> new ArrayList<>()).add(entity.getEntityId()));
+                            notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.start", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
+                        }
+                        else
+                        {
+                            trackedEntities.remove((Integer) entity.getEntityId());
+                            notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.stop", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
+                        }
                     }
-                    else
-                    {
-                        trackedEntities.remove((Integer) entity.getEntityId());
-                        notifyCommandListener(sender, this, Omnipotence.MODID + ".cmd.pathing.stop", entity.getDisplayName(), pos.getX(), pos.getY(), pos.getZ());
-                    }
+                    else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.noEntityFound");
                 }
-                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.noEntityFound");
+                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.notPlayer", cmd);
                 break;
+            }
+
+
+            case "ai":
+            {
+                if (sender instanceof EntityPlayerMP)
+                {
+                    EntityPlayerMP player = (EntityPlayerMP) sender;
+                    Entity entity = player.world.findNearestEntityWithinAABB(EntityLiving.class, player.getEntityBoundingBox().grow(100), player);
+                    if (entity != null)
+                    {
+                        for (String s : MCTools.getAITaskData((EntityLiving) entity)) notifyCommandListener(sender, this, s);
+                    }
+                    else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.noEntityFound");
+                }
+                else notifyCommandListener(sender, this, Omnipotence.MODID + ".error.notPlayer", cmd);
+                break;
+            }
 
 
             default:
