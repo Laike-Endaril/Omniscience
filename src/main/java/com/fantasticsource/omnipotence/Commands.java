@@ -34,7 +34,17 @@ public class Commands extends CommandBase
     @Override
     public String getName()
     {
-        return "omnipotence";
+        return "omni";
+    }
+
+    @Override
+    public List<String> getAliases()
+    {
+        ArrayList<String> names = new ArrayList<>();
+
+        names.add("omnipotence");
+
+        return names;
     }
 
     public int getRequiredPermissionLevel()
@@ -52,7 +62,7 @@ public class Commands extends CommandBase
     {
         if (!subcommands.contains(subcommand))
         {
-            StringBuilder s = new StringBuilder(AQUA + "/omnipotence <" + subcommands.get(0));
+            StringBuilder s = new StringBuilder(AQUA + "/" + getName() + " <" + subcommands.get(0));
             for (int i = 1; i < subcommands.size(); i++) s.append(" | ").append(subcommands.get(i));
             s.append(">");
             return s.toString();
@@ -61,28 +71,18 @@ public class Commands extends CommandBase
         switch (subcommand)
         {
             case "threads":
-                return AQUA + "/omnipotence threads" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment")
-                        + "\n" + AQUA + "/omnipotence threads <id>" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment2")
-                        + "\n" + AQUA + "/omnipotence threads <id> stop" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment3");
+                return AQUA + "/" + getName() + " threads" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment")
+                        + "\n" + AQUA + "/" + getName() + " threads <id>" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment2")
+                        + "\n" + AQUA + "/" + getName() + " threads <id> stop" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.threads.comment3");
 
             case "nbt":
-                return AQUA + "/omnipotence nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment")
-                        + "\n" + AQUA + "/omnipotence nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
-                        + "\n" + AQUA + "/omnipotence nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3");
+                return AQUA + "/" + getName() + " nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment")
+                        + "\n" + AQUA + "/" + getName() + " nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment2")
+                        + "\n" + AQUA + "/" + getName() + " nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd.nbt.comment3");
 
             default:
-                return AQUA + "/omnipotence " + subcommand + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd." + subcommand + ".comment");
+                return AQUA + "/" + getName() + " " + subcommand + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".cmd." + subcommand + ".comment");
         }
-    }
-
-    @Override
-    public List<String> getAliases()
-    {
-        ArrayList<String> names = new ArrayList<>();
-
-        names.add("omni");
-
-        return names;
     }
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args)
@@ -100,7 +100,6 @@ public class Commands extends CommandBase
         {
             case 1:
                 result.addAll(subcommands);
-                if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                 break;
 
             case 2:
@@ -108,16 +107,12 @@ public class Commands extends CommandBase
                 {
                     case "threads":
                         for (long id : Debug.threadIDs()) result.add("" + id);
-
-                        if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                         break;
 
                     case "nbt":
                         result.add("hand");
                         result.add("self");
                         result.add("nearestentity");
-
-                        if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                         break;
                 }
                 break;
@@ -127,12 +122,11 @@ public class Commands extends CommandBase
                 {
                     case "threads":
                         result.add("stop");
-
-                        if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
                         break;
                 }
                 break;
         }
+        if (partial.length() != 0) result.removeIf(k -> partial.length() > k.length() || !k.substring(0, partial.length()).equalsIgnoreCase(partial));
         return result;
     }
 

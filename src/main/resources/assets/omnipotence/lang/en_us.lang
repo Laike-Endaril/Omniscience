@@ -10,8 +10,6 @@ omnipotence.cmd.nbt.comment=§dShows all NBT in the item in your main hand
 omnipotence.cmd.nbt.comment2=§dShows all NBT in YOU
 omnipotence.cmd.nbt.comment3=§cShows all NBT in the nearest entity
 
-omnipotence.cmd.screens.comment=§dShows info on recently shown GuiScreens
-
 omnipotence.cmd.memory.comment=§dShows basic JVM memory usage data
 
 omnipotence.cmd.entities.comment=§dShows how many entities are currently loaded
@@ -21,6 +19,14 @@ omnipotence.cmd.pathing.start=§aPathing is now visible for %s @ %s, %s, %s
 omnipotence.cmd.pathing.stop=§cPathing is no longer visible for %s @ %s, %s, %s
 
 omnipotence.cmd.ai.comment=§dShows the AI tasks of the nearest entity
+
+
+
+omnipotence.ccmd.screens.comment=§dShows info on recently shown GuiScreens
+
+omnipotence.ccmd.nbt.comment=§dShows all NBT in the item in your main hand
+omnipotence.ccmd.nbt.comment2=§dShows all NBT in YOU
+omnipotence.ccmd.nbt.comment3=§cShows all NBT in the nearest entity
 
 
 
