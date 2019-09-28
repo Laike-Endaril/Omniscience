@@ -1,9 +1,12 @@
 package com.fantasticsource.omnipotence.client;
 
+import com.fantasticsource.mctools.MCTools;
 import com.fantasticsource.omnipotence.Network;
+import com.fantasticsource.tools.ReflectionTool;
 import com.fantasticsource.tools.TrigLookupTable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -19,12 +22,27 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class PathVisualizer
 {
+    private static Field renderManagerRenderOutlinesField;
+
+    static
+    {
+        try
+        {
+            renderManagerRenderOutlinesField = ReflectionTool.getField(RenderManager.class, "field_178639_r", "renderOutlines");
+        }
+        catch (NoSuchFieldException | IllegalAccessException e)
+        {
+            MCTools.crash(e, -675, false);
+        }
+    }
+
     public static LinkedHashMap<EntityPlayerMP, ArrayList<Integer>> pathTrackedEntities = new LinkedHashMap<>(); //Used server-side only
     public static LinkedHashMap<Integer, Path> entityPaths = new LinkedHashMap<>(); //Used client-side only
 
@@ -32,13 +50,13 @@ public class PathVisualizer
 
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
-    public static void entityRender(RenderLivingEvent.Post event)
+    public static void entityRender(RenderLivingEvent.Post event) throws IllegalAccessException
     {
-        if (event.getRenderer().getRenderManager().renderOutlines) return;
-
         EntityLivingBase entity = event.getEntity();
         if (!(entity instanceof EntityLiving)) return;
         if (!entityPaths.containsKey(entity.getEntityId())) return;
+
+        if ((boolean) renderManagerRenderOutlinesField.get(event.getRenderer().getRenderManager())) return;
 
 
         GlStateManager.disableLighting();
