@@ -1,6 +1,5 @@
 package com.fantasticsource.omnipotence.client;
 
-import com.fantasticsource.mctools.MCTools;
 import com.fantasticsource.omnipotence.Network;
 import com.fantasticsource.tools.ReflectionTool;
 import com.fantasticsource.tools.TrigLookupTable;
@@ -29,19 +28,7 @@ import java.util.Map;
 
 public class PathVisualizer
 {
-    private static Field renderManagerRenderOutlinesField;
-
-    static
-    {
-        try
-        {
-            renderManagerRenderOutlinesField = ReflectionTool.getField(RenderManager.class, "field_178639_r", "renderOutlines");
-        }
-        catch (NoSuchFieldException | IllegalAccessException e)
-        {
-            MCTools.crash(e, -675, false);
-        }
-    }
+    private static Field renderManagerRenderOutlinesField = ReflectionTool.getField(RenderManager.class, "field_178639_r", "renderOutlines");
 
     public static LinkedHashMap<EntityPlayerMP, ArrayList<Integer>> pathTrackedEntities = new LinkedHashMap<>(); //Used server-side only
     public static LinkedHashMap<Integer, Path> entityPaths = new LinkedHashMap<>(); //Used client-side only

@@ -17,12 +17,12 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
-@Mod(modid = Omnipotence.MODID, name = Omnipotence.NAME, version = Omnipotence.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.021e,)", acceptableRemoteVersions = "*")
+@Mod(modid = Omnipotence.MODID, name = Omnipotence.NAME, version = Omnipotence.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.032,)", acceptableRemoteVersions = "*")
 public class Omnipotence
 {
     public static final String MODID = "omnipotence";
     public static final String NAME = "Omnipotence";
-    public static final String VERSION = "1.12.2.000j";
+    public static final String VERSION = "1.12.2.000k";
 
     static
     {
