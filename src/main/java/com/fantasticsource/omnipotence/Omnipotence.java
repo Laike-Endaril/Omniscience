@@ -4,6 +4,8 @@ import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omnipotence.client.ClientCommands;
 import com.fantasticsource.omnipotence.client.PathVisualizer;
 import com.fantasticsource.omnipotence.client.ScreenDebug;
+import com.fantasticsource.tools.ReflectionTool;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -36,6 +38,7 @@ public class Omnipotence
         {
             ClientCommandHandler.instance.registerCommand(new ClientCommands());
             MinecraftForge.EVENT_BUS.register(ScreenDebug.class);
+            PathVisualizer.renderManagerRenderOutlinesField = ReflectionTool.getField(RenderManager.class, "field_178639_r", "renderOutlines");
         }
     }
 

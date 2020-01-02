@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class PathVisualizer
 {
-    private static Field renderManagerRenderOutlinesField = ReflectionTool.getField(RenderManager.class, "field_178639_r", "renderOutlines");
+    public static Field renderManagerRenderOutlinesField = null;
 
     public static LinkedHashMap<EntityPlayerMP, ArrayList<Integer>> pathTrackedEntities = new LinkedHashMap<>(); //Used server-side only
     public static LinkedHashMap<Integer, Path> entityPaths = new LinkedHashMap<>(); //Used client-side only
