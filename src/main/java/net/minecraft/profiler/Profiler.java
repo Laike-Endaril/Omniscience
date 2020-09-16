@@ -1,96 +1,114 @@
 package net.minecraft.profiler;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class Profiler
 {
     public static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
 
-    private static final Logger LOGGER = LogManager.getLogger();
-    private final List<String> sectionList = Lists.<String>newArrayList();
-    private final List<Long> timestampList = Lists.<Long>newArrayList();
+    private final ArrayList<String> sectionList = new ArrayList<>();
+    private final ArrayList<Long> timestampList = new ArrayList<>();
     public boolean profilingEnabled;
     private String profilingSection = "";
-    private final Map<String, Long> profilingMap = Maps.<String, Long>newHashMap();
+    private final HashMap<String, Long> profilingMap = new HashMap<>();
+
 
     public void clearProfiling()
     {
-        this.profilingMap.clear();
-        this.profilingSection = "";
-        this.sectionList.clear();
+        profilingMap.clear();
+        profilingSection = "";
+        sectionList.clear();
+    }
+
+
+    public void func_194340_a(Supplier<String> p_194340_1_)
+    {
+        startSection(p_194340_1_.get());
+    }
+
+    public void startSection(Class<?> profiledClass)
+    {
+        startSection(profiledClass.getSimpleName());
     }
 
     public void startSection(String name)
     {
-        if (this.profilingEnabled)
+        if (profilingEnabled)
         {
-            if (!this.profilingSection.isEmpty())
+            if (!profilingSection.isEmpty())
             {
-                this.profilingSection = this.profilingSection + ".";
+                profilingSection = profilingSection + ".";
             }
 
-            this.profilingSection = this.profilingSection + name;
-            this.sectionList.add(this.profilingSection);
-            this.timestampList.add(Long.valueOf(System.nanoTime()));
+            profilingSection = profilingSection + name;
+            sectionList.add(profilingSection);
+            timestampList.add(System.nanoTime());
         }
     }
 
-    public void func_194340_a(Supplier<String> p_194340_1_)
-    {
-        if (this.profilingEnabled)
-        {
-            this.startSection(p_194340_1_.get());
-        }
-    }
 
     public void endSection()
     {
-        if (this.profilingEnabled)
+        if (profilingEnabled)
         {
             long i = System.nanoTime();
-            long j = ((Long) this.timestampList.remove(this.timestampList.size() - 1)).longValue();
-            this.sectionList.remove(this.sectionList.size() - 1);
+            long j = timestampList.remove(timestampList.size() - 1);
+            sectionList.remove(sectionList.size() - 1);
             long k = i - j;
 
-            if (this.profilingMap.containsKey(this.profilingSection))
+            if (profilingMap.containsKey(profilingSection))
             {
-                this.profilingMap.put(this.profilingSection, Long.valueOf(((Long) this.profilingMap.get(this.profilingSection)).longValue() + k));
+                profilingMap.put(profilingSection, profilingMap.get(profilingSection) + k);
             }
             else
             {
-                this.profilingMap.put(this.profilingSection, Long.valueOf(k));
+                profilingMap.put(profilingSection, k);
             }
 
-            if (k > 100000000L)
-            {
-                LOGGER.warn("Something's taking too long! '{}' took aprox {} ms", this.profilingSection, Double.valueOf((double) k / 1000000.0D));
-            }
-
-            this.profilingSection = this.sectionList.isEmpty() ? "" : (String) this.sectionList.get(this.sectionList.size() - 1);
+            profilingSection = sectionList.isEmpty() ? "" : sectionList.get(sectionList.size() - 1);
         }
     }
 
+
+    @SideOnly(Side.CLIENT)
+    public void func_194339_b(Supplier<String> p_194339_1_)
+    {
+        endSection();
+        func_194340_a(p_194339_1_);
+    }
+
+    public void endStartSection(String name)
+    {
+        endSection();
+        startSection(name);
+    }
+
+
+    public String getNameOfLastSection()
+    {
+        return sectionList.isEmpty() ? "[UNKNOWN]" : sectionList.get(sectionList.size() - 1);
+    }
+
+
     public List<Profiler.Result> getProfilingData(String profilerName)
     {
-        if (!this.profilingEnabled)
+        if (!profilingEnabled)
         {
-            return Collections.<Profiler.Result>emptyList();
+            return Collections.emptyList();
         }
         else
         {
-            long i = this.profilingMap.containsKey("root") ? ((Long) this.profilingMap.get("root")).longValue() : 0L;
-            long j = this.profilingMap.containsKey(profilerName) ? ((Long) this.profilingMap.get(profilerName)).longValue() : -1L;
-            List<Profiler.Result> list = Lists.<Profiler.Result>newArrayList();
+            long i = profilingMap.getOrDefault("root", 0L);
+            long j = profilingMap.getOrDefault(profilerName, 0L);
+            List<Profiler.Result> list = Lists.newArrayList();
 
             if (!profilerName.isEmpty())
             {
@@ -99,11 +117,11 @@ public class Profiler
 
             long k = 0L;
 
-            for (String s : this.profilingMap.keySet())
+            for (String s : profilingMap.keySet())
             {
                 if (s.length() > profilerName.length() && s.startsWith(profilerName) && s.indexOf(".", profilerName.length() + 1) < 0)
                 {
-                    k += ((Long) this.profilingMap.get(s)).longValue();
+                    k += profilingMap.get(s);
                 }
             }
 
@@ -119,11 +137,11 @@ public class Profiler
                 i = k;
             }
 
-            for (String s1 : this.profilingMap.keySet())
+            for (String s1 : profilingMap.keySet())
             {
                 if (s1.length() > profilerName.length() && s1.startsWith(profilerName) && s1.indexOf(".", profilerName.length() + 1) < 0)
                 {
-                    long l = ((Long) this.profilingMap.get(s1)).longValue();
+                    long l = profilingMap.get(s1);
                     double d0 = (double) l * 100.0D / (double) k;
                     double d1 = (double) l * 100.0D / (double) i;
                     double d2 = (double) l / (double) NORMAL_TICK_TIME_NANOS;
@@ -132,9 +150,9 @@ public class Profiler
                 }
             }
 
-            for (String s3 : this.profilingMap.keySet())
+            for (String s3 : profilingMap.keySet())
             {
-                this.profilingMap.put(s3, Long.valueOf(((Long) this.profilingMap.get(s3)).longValue() * 999L / 1000L));
+                profilingMap.put(s3, profilingMap.get(s3) * 999L / 1000L);
             }
 
             if ((float) k > f)
@@ -148,23 +166,6 @@ public class Profiler
         }
     }
 
-    public void endStartSection(String name)
-    {
-        this.endSection();
-        this.startSection(name);
-    }
-
-    public String getNameOfLastSection()
-    {
-        return this.sectionList.isEmpty() ? "[UNKNOWN]" : (String) this.sectionList.get(this.sectionList.size() - 1);
-    }
-
-    @SideOnly(Side.CLIENT)
-    public void func_194339_b(Supplier<String> p_194339_1_)
-    {
-        this.endSection();
-        this.func_194340_a(p_194339_1_);
-    }
 
     public static final class Result implements Comparable<Result>
     {
@@ -190,15 +191,6 @@ public class Profiler
         public int getColor()
         {
             return (profilerName.hashCode() & 11184810) + 4473924;
-        }
-    }
-
-    @Deprecated // TODO: remove (1.13)
-    public void startSection(Class<?> profiledClass)
-    {
-        if (this.profilingEnabled)
-        {
-            startSection(profiledClass.getSimpleName());
         }
     }
 }
