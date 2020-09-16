@@ -1,10 +1,10 @@
-Add path debugging command (/omnipotence pathing show/hide)
+Rename to Omniscience
 
 
 
 Find a new way to ensure my mod is first in the event priority queue...
 ...actual mod loading order may be difficult due to dependencies of my own and other mods
-...enum alterations didn't turn out well, though I learned some interesting hacks
+...alteration of the event priority enum didn't turn out well, though I learned some interesting hacks
 
 See if I can reliably get an event for pre- and post-gc...
 ...gc run count change timing = ? (probably post- as I assume the thread detecting it will be locked until the gc is done)
