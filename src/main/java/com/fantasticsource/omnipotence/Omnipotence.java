@@ -14,7 +14,6 @@ import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -53,6 +52,7 @@ public class Omnipotence
     public static void serverStarting(FMLServerStartingEvent event)
     {
         event.registerServerCommand(new Commands());
+        event.registerServerCommand(new CommandDebug());
 
         System.out.println(Debug.memData());
     }
