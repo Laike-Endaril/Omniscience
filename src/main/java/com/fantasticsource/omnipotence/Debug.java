@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 public class Debug
 {
+    public static final Runtime RUNTIME = Runtime.getRuntime();
+
     private static ThreadMXBean threadBean;
     private static RuntimeMXBean runtimeBean;
 
@@ -149,13 +151,33 @@ public class Debug
         ASMifier.main(new String[]{fullClassname});
     }
 
+
+    public static long freeMemory()
+    {
+        return RUNTIME.freeMemory();
+    }
+
+    public static long allocatedMemory()
+    {
+        return RUNTIME.totalMemory();
+    }
+
+    public static long maxMemory()
+    {
+        return RUNTIME.maxMemory();
+    }
+
+    public static long usedMemory()
+    {
+        return allocatedMemory() - freeMemory();
+    }
+
     public static String memData()
     {
-        Runtime runtime = Runtime.getRuntime();
-
-        long max = runtime.maxMemory(), free = runtime.freeMemory(), total = runtime.totalMemory(), currentUsed = total - free;
-        return "MEMORY ... Current: " + currentUsed + "/" + total + " (~" + (int) ((double) currentUsed / total * 100) + "%) ... Max: " + total + "/" + max + " (~" + (int) ((double) total / max * 100) + "%)";
+        long max = maxMemory(), allocated = allocatedMemory(), used = freeMemory();
+        return "MEMORY ... Current: " + used + "/" + allocated + " (~" + (int) ((double) used / allocated * 100) + "%) ... Max: " + allocated + "/" + max + " (~" + (int) ((double) allocated / max * 100) + "%)";
     }
+
 
     public static int processID()
     {

@@ -143,7 +143,7 @@ public class LagDetector implements Runnable
 
             for (int j = 0; j < depth; j++) builder.append("|   ");
 
-            builder.append(profiler$result.profilerName).append(" - ").append(String.format("%.2f", profiler$result.usePercentage)).append("%/").append(String.format("%.2f", profiler$result.totalUsePercentage)).append("%\n");
+            builder.append(profiler$result.profilerName).append(" - ").append(String.format("%.2f", profiler$result.timePercentage)).append("%/").append(String.format("%.2f", profiler$result.totalTimePercentage)).append("%\n");
 
             if (!"unspecified".equals(profiler$result.profilerName))
             {
