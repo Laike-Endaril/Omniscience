@@ -1,10 +1,10 @@
 package com.fantasticsource.omnipotence;
 
+import com.fantasticsource.omnipotence.hack.OmniProfiler;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import org.apache.commons.io.IOUtils;
@@ -130,13 +130,13 @@ public class CommandDebug extends CommandBase
 
     private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server)
     {
-        List<Profiler.Result> list = server.profiler.getProfilingData(sectionName);
+        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, true);
 
         if (list.size() >= 3)
         {
             for (int i = 1; i < list.size(); ++i)
             {
-                Profiler.Result profiler$result = list.get(i);
+                OmniProfiler.Result profilerResult = list.get(i);
                 builder.append(String.format("[%02d] ", depth));
 
                 for (int j = 0; j < depth; ++j)
@@ -144,13 +144,13 @@ public class CommandDebug extends CommandBase
                     builder.append("|   ");
                 }
 
-                builder.append(profiler$result.profilerName).append(" - ").append(String.format("%.2f", profiler$result.tickUsePercentage)).append("%\n");
+                builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%\n");
 
-                if (!"unspecified".equals(profiler$result.profilerName))
+                if (!"unspecified".equals(profilerResult.profilerName))
                 {
                     try
                     {
-                        this.appendProfilerResults(depth + 1, sectionName + "." + profiler$result.profilerName, builder, server);
+                        this.appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server);
                     }
                     catch (Exception exception)
                     {

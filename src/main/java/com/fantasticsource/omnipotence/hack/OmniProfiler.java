@@ -1,104 +1,29 @@
-package net.minecraft.profiler;
+package com.fantasticsource.omnipotence.hack;
 
+import com.fantasticsource.tools.ReflectionTool;
 import com.google.common.collect.Lists;
+import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Map;
 
-public class Profiler
+public class OmniProfiler extends Profiler
 {
-    public static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
+    protected static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
+    protected static final Field PROFILER_PROFILING_MAP_FIELD = ReflectionTool.getField(Profiler.class, "field_76324_e", "profilingMap");
 
-    private final ArrayList<String> sectionList = new ArrayList<>();
-    private final ArrayList<Long> timestampList = new ArrayList<>();
-    public boolean profilingEnabled;
-    private String profilingSection = "";
-    private final HashMap<String, Long> profilingMap = new HashMap<>();
+    protected final Map<String, Long> profilingMap;
 
-
-    public void clearProfiling()
+    public OmniProfiler()
     {
-        profilingMap.clear();
-        profilingSection = "";
-        sectionList.clear();
+        profilingMap = (Map<String, Long>) ReflectionTool.get(PROFILER_PROFILING_MAP_FIELD, this);
     }
 
-
-    public void func_194340_a(Supplier<String> p_194340_1_)
-    {
-        startSection(p_194340_1_.get());
-    }
-
-    public void startSection(Class<?> profiledClass)
-    {
-        startSection(profiledClass.getSimpleName());
-    }
-
-    public void startSection(String name)
-    {
-        if (profilingEnabled)
-        {
-            if (!profilingSection.isEmpty())
-            {
-                profilingSection = profilingSection + ".";
-            }
-
-            profilingSection = profilingSection + name;
-            sectionList.add(profilingSection);
-            timestampList.add(System.nanoTime());
-        }
-    }
-
-
-    public void endSection()
-    {
-        if (profilingEnabled)
-        {
-            long i = System.nanoTime();
-            long j = timestampList.remove(timestampList.size() - 1);
-            sectionList.remove(sectionList.size() - 1);
-            long k = i - j;
-
-            if (profilingMap.containsKey(profilingSection))
-            {
-                profilingMap.put(profilingSection, profilingMap.get(profilingSection) + k);
-            }
-            else
-            {
-                profilingMap.put(profilingSection, k);
-            }
-
-            profilingSection = sectionList.isEmpty() ? "" : sectionList.get(sectionList.size() - 1);
-        }
-    }
-
-
-    @SideOnly(Side.CLIENT)
-    public void func_194339_b(Supplier<String> p_194339_1_)
-    {
-        endSection();
-        func_194340_a(p_194339_1_);
-    }
-
-    public void endStartSection(String name)
-    {
-        endSection();
-        startSection(name);
-    }
-
-
-    public String getNameOfLastSection()
-    {
-        return sectionList.isEmpty() ? "[UNKNOWN]" : sectionList.get(sectionList.size() - 1);
-    }
-
-
-    public List<Profiler.Result> getProfilingData(String profilerName)
+    public List<OmniProfiler.Result> getProfilingData(String profilerName, boolean omni)
     {
         if (!profilingEnabled)
         {
@@ -108,7 +33,7 @@ public class Profiler
         {
             long i = profilingMap.getOrDefault("root", 0L);
             long j = profilingMap.getOrDefault(profilerName, 0L);
-            List<Profiler.Result> list = Lists.newArrayList();
+            List<OmniProfiler.Result> list = Lists.newArrayList();
 
             if (!profilerName.isEmpty())
             {
@@ -146,7 +71,7 @@ public class Profiler
                     double d1 = (double) l * 100.0D / (double) i;
                     double d2 = (double) l / (double) NORMAL_TICK_TIME_NANOS;
                     String s2 = s1.substring(profilerName.length());
-                    list.add(new Profiler.Result(s2, d0, d1, d2));
+                    list.add(new OmniProfiler.Result(s2, d0, d1, d2));
                 }
             }
 
@@ -157,11 +82,11 @@ public class Profiler
 
             if ((float) k > f)
             {
-                list.add(new Profiler.Result("unspecified", (double) ((float) k - f) * 100.0D / (double) k, (double) ((float) k - f) * 100.0D / (double) i, (double) ((float) k - f) / (double) NORMAL_TICK_TIME_NANOS));
+                list.add(new OmniProfiler.Result("unspecified", (double) ((float) k - f) * 100.0D / (double) k, (double) ((float) k - f) * 100.0D / (double) i, (double) ((float) k - f) / (double) NORMAL_TICK_TIME_NANOS));
             }
 
             Collections.sort(list);
-            list.add(0, new Profiler.Result(profilerName, 100.0D, (double) k * 100.0D / (double) i, (double) k / (double) NORMAL_TICK_TIME_NANOS));
+            list.add(0, new OmniProfiler.Result(profilerName, 100.0D, (double) k * 100.0D / (double) i, (double) k / (double) NORMAL_TICK_TIME_NANOS));
             return list;
         }
     }
