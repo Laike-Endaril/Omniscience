@@ -12,8 +12,8 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 
 
 version = "1.12.2.000k"
-group = "com.fantasticsource.omnipotence" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "Omnipotence"
+group = "com.fantasticsource.omniscience" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "Omniscience"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
@@ -33,7 +33,7 @@ minecraft {
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
     replace "@VERSION@", project.version
-    replaceIn "Omnipotence.java"
+    replaceIn "Omniscience.java"
 }
 
 processResources {
@@ -57,9 +57,9 @@ processResources {
 
 jar {
     manifest {
-        attributes 'Agent-Class': 'com.fantasticsource.omnipotence.transforms.AgentTest'
+        attributes 'Agent-Class': 'com.fantasticsource.omniscience.transforms.AgentTest'
         attributes 'Can-Retransform-Classes': 'true'
-        attributes 'Premain-Class': 'com.fantasticsource.omnipotence.transforms.AgentTest'
+        attributes 'Premain-Class': 'com.fantasticsource.omniscience.transforms.AgentTest'
     }
 }
 

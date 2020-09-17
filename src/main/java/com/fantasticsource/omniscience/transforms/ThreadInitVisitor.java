@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.transforms;
+package com.fantasticsource.omniscience.transforms;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -88,14 +88,14 @@ public class ThreadInitVisitor extends MethodVisitor
 
 
         //Failed
-//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omnipotence/transforms/AgentTest", "injectToThreadInit", "Ljava/util/function/Predicate;");
+//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omniscience/transforms/AgentTest", "injectToThreadInit", "Ljava/util/function/Predicate;");
 //        mv.visitInsn(ACONST_NULL);
 //        mv.visitMethodInsn(INVOKEINTERFACE, "java/util/function/Predicate", "test", "(Ljava/lang/Object;)Z", true);
 //        mv.visitInsn(POP);
 
 
         //Failed
-//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omnipotence/Debug", "sourceTraceMap", "Ljava/util/LinkedHashMap;");
+//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omniscience/Debug", "sourceTraceMap", "Ljava/util/LinkedHashMap;");
 //        mv.visitVarInsn(ALOAD, 0);
 //        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "getAllStackTraces", "()Ljava/util/Map;", false);
 //        mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/LinkedHashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false);
@@ -103,7 +103,7 @@ public class ThreadInitVisitor extends MethodVisitor
 
 
         //Failed
-//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omnipotence/transforms/AgentTest", "verboseThreadCreation", "Z");
+//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omniscience/transforms/AgentTest", "verboseThreadCreation", "Z");
 //        Label l0 = new Label();
 //        mv.visitJumpInsn(IFEQ, l0);
 //        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;", false);
@@ -134,7 +134,7 @@ public class ThreadInitVisitor extends MethodVisitor
 
 
         //Failed
-//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omnipotence/Debug", "sourceTraceMap", "Ljava/util/LinkedHashMap;");
+//        mv.visitFieldInsn(GETSTATIC, "com/fantasticsource/omniscience/Debug", "sourceTraceMap", "Ljava/util/LinkedHashMap;");
 //        mv.visitVarInsn(ALOAD, 0);
 //        mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "currentThread", "()Ljava/lang/Thread;", false);
 //        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Thread", "getStackTrace", "()[Ljava/lang/StackTraceElement;", false);

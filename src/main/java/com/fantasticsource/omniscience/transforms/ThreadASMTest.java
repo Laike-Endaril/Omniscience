@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.transforms;
+package com.fantasticsource.omniscience.transforms;
 
 import org.objectweb.asm.*;
 

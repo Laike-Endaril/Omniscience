@@ -1,7 +1,6 @@
-package com.fantasticsource.omnipotence.client;
+package com.fantasticsource.omniscience.client;
 
 import com.fantasticsource.mctools.MCTools;
-import com.fantasticsource.omnipotence.Omnipotence;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.fantasticsource.omniscience.Omniscience.MODID;
 import static net.minecraft.util.text.TextFormatting.AQUA;
 import static net.minecraft.util.text.TextFormatting.WHITE;
 
@@ -44,7 +44,7 @@ public class ClientCommands extends CommandBase implements IClientCommand
         ArrayList<String> names = new ArrayList<>();
 
         names.add("omniclient");
-        names.add("omnipotenceclient");
+        names.add(MODID + "client");
 
         return names;
     }
@@ -86,12 +86,12 @@ public class ClientCommands extends CommandBase implements IClientCommand
         switch (subcommand)
         {
             case "nbt":
-                return AQUA + "/" + getName() + " nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".ccmd.nbt.comment")
-                        + "\n" + AQUA + "/" + getName() + " nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".ccmd.nbt.comment2")
-                        + "\n" + AQUA + "/" + getName() + " nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".ccmd.nbt.comment3");
+                return AQUA + "/" + getName() + " nbt hand" + WHITE + " - " + I18n.translateToLocalFormatted(MODID + ".ccmd.nbt.comment")
+                        + "\n" + AQUA + "/" + getName() + " nbt self" + WHITE + " - " + I18n.translateToLocalFormatted(MODID + ".ccmd.nbt.comment2")
+                        + "\n" + AQUA + "/" + getName() + " nbt nearestentity" + WHITE + " - " + I18n.translateToLocalFormatted(MODID + ".ccmd.nbt.comment3");
 
             default:
-                return AQUA + "/" + getName() + " " + subcommand + WHITE + " - " + I18n.translateToLocalFormatted(Omnipotence.MODID + ".ccmd." + subcommand + ".comment");
+                return AQUA + "/" + getName() + " " + subcommand + WHITE + " - " + I18n.translateToLocalFormatted(MODID + ".ccmd." + subcommand + ".comment");
         }
     }
 
@@ -183,7 +183,7 @@ public class ClientCommands extends CommandBase implements IClientCommand
                     case 2:
                         if (!(sender instanceof EntityPlayer))
                         {
-                            sender.sendMessage(new TextComponentString(I18n.translateToLocalFormatted(Omnipotence.MODID + ".error.notPlayer", cmd)));
+                            sender.sendMessage(new TextComponentString(I18n.translateToLocalFormatted(MODID + ".error.notPlayer", cmd)));
                             return;
                         }
 
@@ -213,7 +213,7 @@ public class ClientCommands extends CommandBase implements IClientCommand
                                     notifyNBT(sender, entity.writeToNBT(new NBTTagCompound()));
                                     sender.sendMessage(new TextComponentString(""));
                                 }
-                                else sender.sendMessage(new TextComponentString(I18n.translateToLocalFormatted(Omnipotence.MODID + ".error.noEntityFound")));
+                                else sender.sendMessage(new TextComponentString(I18n.translateToLocalFormatted(MODID + ".error.noEntityFound")));
                                 break;
 
                             default:

@@ -1,6 +1,6 @@
-package com.fantasticsource.omnipotence;
+package com.fantasticsource.omniscience;
 
-import com.fantasticsource.omnipotence.hack.OmniProfiler;
+import com.fantasticsource.omniscience.hack.OmniProfiler;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;

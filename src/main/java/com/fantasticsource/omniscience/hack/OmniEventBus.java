@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.hack;
+package com.fantasticsource.omniscience.hack;
 
 import com.fantasticsource.tools.ReflectionTool;
 import com.google.common.collect.Sets;

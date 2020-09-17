@@ -1,7 +1,7 @@
 [
 {
-  "modid": "omnipotence",
-  "name": "Omnipotence",
+  "modid": "omniscience",
+  "name": "Omniscience",
   "description": "An attempt at a be-all, end-all MC/Forge/Mod debugger",
   "version": "${version}",
   "mcversion": "${mcversion}",

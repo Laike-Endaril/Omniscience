@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.client;
+package com.fantasticsource.omniscience.client;
 
 import com.fantasticsource.tools.Timestamp;
 import com.fantasticsource.tools.datastructures.Pair;

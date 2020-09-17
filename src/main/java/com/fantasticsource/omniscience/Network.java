@@ -1,6 +1,6 @@
-package com.fantasticsource.omnipotence;
+package com.fantasticsource.omniscience;
 
-import com.fantasticsource.omnipotence.client.PathVisualizer;
+import com.fantasticsource.omniscience.client.PathVisualizer;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.pathfinding.Path;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class Network
 {
-    public static final SimpleNetworkWrapper WRAPPER = NetworkRegistry.INSTANCE.newSimpleChannel(Omnipotence.MODID);
+    public static final SimpleNetworkWrapper WRAPPER = NetworkRegistry.INSTANCE.newSimpleChannel(Omniscience.MODID);
 
     private static int discriminator = 0;
 

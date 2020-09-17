@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence;
+package com.fantasticsource.omniscience;
 
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
@@ -8,6 +8,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
+
+import static com.fantasticsource.omniscience.Omniscience.NAME;
 
 @SideOnly(Side.SERVER)
 public class LagDetector implements Runnable
@@ -27,7 +29,7 @@ public class LagDetector implements Runnable
         if (dedicatedServer.getMaxTickTime() > 0L)
         {
             Thread thread1 = new Thread(new LagDetector(dedicatedServer));
-            thread1.setName("Omnipotence-LagDetector");
+            thread1.setName(NAME + "-LagDetector");
             thread1.setDaemon(true);
             thread1.start();
             return true;

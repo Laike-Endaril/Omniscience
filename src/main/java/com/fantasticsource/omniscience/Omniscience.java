@@ -1,11 +1,11 @@
-package com.fantasticsource.omnipotence;
+package com.fantasticsource.omniscience;
 
 import com.fantasticsource.mctools.ServerTickTimer;
-import com.fantasticsource.omnipotence.client.ClientCommands;
-import com.fantasticsource.omnipotence.client.PathVisualizer;
-import com.fantasticsource.omnipotence.client.ScreenDebug;
-import com.fantasticsource.omnipotence.hack.OmniEventBus;
-import com.fantasticsource.omnipotence.hack.OmniProfiler;
+import com.fantasticsource.omniscience.client.ClientCommands;
+import com.fantasticsource.omniscience.client.PathVisualizer;
+import com.fantasticsource.omniscience.client.ScreenDebug;
+import com.fantasticsource.omniscience.hack.OmniEventBus;
+import com.fantasticsource.omniscience.hack.OmniProfiler;
 import com.fantasticsource.tools.ReflectionTool;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.server.MinecraftServer;
@@ -24,14 +24,14 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import java.lang.reflect.Field;
 
-@Mod(modid = Omnipotence.MODID, name = Omnipotence.NAME, version = Omnipotence.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.037,)", acceptableRemoteVersions = "*")
-public class Omnipotence
+@Mod(modid = Omniscience.MODID, name = Omniscience.NAME, version = Omniscience.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.037,)", acceptableRemoteVersions = "*")
+public class Omniscience
 {
     protected static final Field MINECRAFT_FORGE_EVENT_BUS_FIELD = ReflectionTool.getField(MinecraftForge.class, "EVENT_BUS");
     protected static final Field MINECRAFT_SERVER_PROFILER_FIELD = ReflectionTool.getField(MinecraftServer.class, "field_71304_b", "profiler");
 
-    public static final String MODID = "omnipotence";
-    public static final String NAME = "Omnipotence";
+    public static final String MODID = "omniscience";
+    public static final String NAME = "Omniscience";
     public static final String VERSION = "1.12.2.000k";
 
     static
@@ -39,7 +39,7 @@ public class Omnipotence
         ReflectionTool.set(MINECRAFT_FORGE_EVENT_BUS_FIELD, null, new OmniEventBus());
 
 
-        MinecraftForge.EVENT_BUS.register(Omnipotence.class);
+        MinecraftForge.EVENT_BUS.register(Omniscience.class);
         MinecraftForge.EVENT_BUS.register(ServerTickTimer.class);
         MinecraftForge.EVENT_BUS.register(PathVisualizer.class);
         Debug.init();

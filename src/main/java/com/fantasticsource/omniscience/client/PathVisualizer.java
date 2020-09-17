@@ -1,11 +1,9 @@
-package com.fantasticsource.omnipotence.client;
+package com.fantasticsource.omniscience.client;
 
-import com.fantasticsource.omnipotence.Network;
-import com.fantasticsource.tools.ReflectionTool;
+import com.fantasticsource.omniscience.Network;
 import com.fantasticsource.tools.TrigLookupTable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;

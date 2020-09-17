@@ -1,7 +1,3 @@
-Rename to Omniscience
-
-
-
 Find a new way to ensure my mod is first in the event priority queue...
 ...actual mod loading order may be difficult due to dependencies of my own and other mods
 ...alteration of the event priority enum didn't turn out well, though I learned some interesting hacks

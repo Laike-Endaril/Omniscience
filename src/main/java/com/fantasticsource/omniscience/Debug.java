@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence;
+package com.fantasticsource.omniscience;
 
 import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.tools.datastructures.SortableTable;

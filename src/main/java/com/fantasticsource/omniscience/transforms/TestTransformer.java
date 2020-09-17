@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.transforms;
+package com.fantasticsource.omniscience.transforms;
 
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;

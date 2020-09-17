@@ -1,4 +1,4 @@
-package com.fantasticsource.omnipotence.hack;
+package com.fantasticsource.omniscience.hack;
 
 import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.common.FMLCommonHandler;
