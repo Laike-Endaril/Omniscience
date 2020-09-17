@@ -14,14 +14,48 @@ import java.util.Map;
 public class OmniProfiler extends Profiler
 {
     protected static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
-    protected static final Field PROFILER_PROFILING_MAP_FIELD = ReflectionTool.getField(Profiler.class, "field_76324_e", "profilingMap");
+    protected static final Field
+            PROFILER_PROFILING_SECTION_FIELD = ReflectionTool.getField(Profiler.class, "field_76323_d", "profilingSection"),
+            PROFILER_SECTION_LIST_FIELD = ReflectionTool.getField(Profiler.class, "field_76325_b", "sectionList"),
+            PROFILER_TIMESTAMP_LIST_FIELD = ReflectionTool.getField(Profiler.class, "field_76326_c", "timestampList"),
+            PROFILER_PROFILING_MAP_FIELD = ReflectionTool.getField(Profiler.class, "field_76324_e", "profilingMap");
 
-    protected final Map<String, Long> profilingMap;
+    protected List<String> sectionList;
+    protected List<Long> timestampList;
+    protected Map<String, Long> profilingMap;
 
     public OmniProfiler()
     {
+        sectionList = (List<String>) ReflectionTool.get(PROFILER_SECTION_LIST_FIELD, this);
+        timestampList = (List<Long>) ReflectionTool.get(PROFILER_TIMESTAMP_LIST_FIELD, this);
         profilingMap = (Map<String, Long>) ReflectionTool.get(PROFILER_PROFILING_MAP_FIELD, this);
     }
+
+
+    public void endSection()
+    {
+        String profilingSection = (String) ReflectionTool.get(PROFILER_PROFILING_SECTION_FIELD, this);
+
+        if (profilingEnabled)
+        {
+            long i = System.nanoTime();
+            long j = timestampList.remove(timestampList.size() - 1);
+            sectionList.remove(sectionList.size() - 1);
+            long k = i - j;
+
+            if (profilingMap.containsKey(profilingSection))
+            {
+                profilingMap.put(profilingSection, profilingMap.get(profilingSection) + k);
+            }
+            else
+            {
+                profilingMap.put(profilingSection, k);
+            }
+
+            ReflectionTool.set(PROFILER_PROFILING_SECTION_FIELD, this, sectionList.isEmpty() ? "" : sectionList.get(sectionList.size() - 1));
+        }
+    }
+
 
     public List<OmniProfiler.Result> getProfilingData(String profilerName, boolean omni)
     {
