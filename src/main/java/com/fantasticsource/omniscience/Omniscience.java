@@ -28,7 +28,7 @@ import java.lang.reflect.Field;
 @Mod(modid = Omniscience.MODID, name = Omniscience.NAME, version = Omniscience.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.037,)", acceptableRemoteVersions = "*")
 public class Omniscience
 {
-    protected static final Field MINECRAFT_FORGE_EVENT_BUS_FIELD = ReflectionTool.getField(MinecraftForge.class, "EVENT_BUS");
+//    protected static final Field MINECRAFT_FORGE_EVENT_BUS_FIELD = ReflectionTool.getField(MinecraftForge.class, "EVENT_BUS");
     protected static final Field MINECRAFT_SERVER_PROFILER_FIELD = ReflectionTool.getField(MinecraftServer.class, "field_71304_b", "profiler");
 
     public static final String MODID = "omniscience";
@@ -37,7 +37,7 @@ public class Omniscience
 
     static
     {
-        ReflectionTool.set(MINECRAFT_FORGE_EVENT_BUS_FIELD, null, new OmniEventBus(MinecraftForge.EVENT_BUS));
+//        ReflectionTool.set(MINECRAFT_FORGE_EVENT_BUS_FIELD, null, new OmniEventBus(MinecraftForge.EVENT_BUS));
 
 
         MinecraftForge.EVENT_BUS.register(Omniscience.class);
