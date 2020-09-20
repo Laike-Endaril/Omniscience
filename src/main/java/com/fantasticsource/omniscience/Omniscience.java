@@ -36,7 +36,7 @@ public class Omniscience
 
     static
     {
-        ReflectionTool.set(MINECRAFT_FORGE_EVENT_BUS_FIELD, null, new OmniEventBus());
+        ReflectionTool.set(MINECRAFT_FORGE_EVENT_BUS_FIELD, null, new OmniEventBus(MinecraftForge.EVENT_BUS));
 
 
         MinecraftForge.EVENT_BUS.register(Omniscience.class);

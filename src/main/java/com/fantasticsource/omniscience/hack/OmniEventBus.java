@@ -28,11 +28,11 @@ public class OmniEventBus extends EventBus
     protected Map<Object, ModContainer> listenerOwners;
     protected int busID;
 
-    public OmniEventBus()
+    public OmniEventBus(EventBus originalBus)
     {
-        listeners = (ConcurrentHashMap<Object, ArrayList<IEventListener>>) ReflectionTool.get(EVENT_BUS_LISTENERS_FIELD, this);
-        listenerOwners = (Map<Object, ModContainer>) ReflectionTool.get(EVENT_BUS_LISTENER_OWNERS_FIELD, this);
-        busID = (int) ReflectionTool.get(EVENT_BUS_BUS_ID_FIELD, this);
+        listeners = (ConcurrentHashMap<Object, ArrayList<IEventListener>>) ReflectionTool.get(EVENT_BUS_LISTENERS_FIELD, originalBus);
+        listenerOwners = (Map<Object, ModContainer>) ReflectionTool.get(EVENT_BUS_LISTENER_OWNERS_FIELD, originalBus);
+        busID = (int) ReflectionTool.get(EVENT_BUS_BUS_ID_FIELD, originalBus);
     }
 
     @Override
