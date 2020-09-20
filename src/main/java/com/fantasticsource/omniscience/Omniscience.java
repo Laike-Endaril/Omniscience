@@ -9,6 +9,7 @@ import com.fantasticsource.omniscience.hack.OmniProfiler;
 import com.fantasticsource.tools.ReflectionTool;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
@@ -80,9 +81,12 @@ public class Omniscience
         MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
         if (server.isDedicatedServer())
         {
-            if (LagDetector.init(server)) System.out.println("Starting LagDetector");
-            else System.out.println("NOT starting LagDetector; the watchdog timeout setting is 0");
+            if (LagDetector.init(event, server)) System.out.println(TextFormatting.LIGHT_PURPLE + "Starting LagDetector");
+            else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector; the watchdog timeout setting is 0");
+
+            GCMessager.init(event);
+            System.out.println(TextFormatting.LIGHT_PURPLE + "Starting GCMessager");
         }
-        else System.out.println("NOT starting LagDetector; we are not running in dedicated server mode");
+        else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector or GCMessager; we are not running in dedicated server mode");
     }
 }

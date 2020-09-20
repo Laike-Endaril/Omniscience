@@ -3,6 +3,7 @@ package com.fantasticsource.omniscience;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -20,7 +21,7 @@ public class LagDetector implements Runnable
         this.server = server;
     }
 
-    public static boolean init(MinecraftServer server)
+    public static boolean init(FMLServerStartedEvent event, MinecraftServer server)
     {
         DedicatedServer dedicatedServer = (DedicatedServer) server;
         if (dedicatedServer.getMaxTickTime() > 0L)
