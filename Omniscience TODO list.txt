@@ -1,4 +1,4 @@
-
+Fix issues with OmniEventBus, or find another way to apply profiling to @SubscribeEvent
 
 
 
