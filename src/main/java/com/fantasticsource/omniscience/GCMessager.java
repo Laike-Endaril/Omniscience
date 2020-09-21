@@ -27,6 +27,7 @@ public class GCMessager
         if (gcRuns > prevGCRuns)
         {
             System.out.println(TextFormatting.LIGHT_PURPLE + "Garbage collector(s) ran " + (gcRuns - prevGCRuns) + " time(s) within the last server tick");
+            System.out.println(TextFormatting.LIGHT_PURPLE + "After GC... " + Debug.memData());
             prevGCRuns = gcRuns;
         }
     }
