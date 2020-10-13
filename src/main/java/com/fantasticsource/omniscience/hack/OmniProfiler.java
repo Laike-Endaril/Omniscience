@@ -83,7 +83,7 @@ public class OmniProfiler extends Profiler
     }
 
 
-    public List<OmniProfiler.Result> getProfilingData(String sectionName, boolean omni, long timeSpan, int tickSpan)
+    public List<OmniProfiler.Result> getProfilingData(String sectionName, int tickSpan, int totalGCRuns, long totalGCNanos)
     {
         if (!profilingEnabled)
         {
@@ -132,6 +132,8 @@ public class OmniProfiler extends Profiler
             {
                 list.add(new OmniProfiler.Result("unspecified", (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) sectionTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) rootTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, 0));
             }
+
+            if (sectionName.equals("root.")) list.add(new OmniProfiler.Result("GC", (double) totalGCNanos * 100 / (double) sectionTime, (double) totalGCNanos * 100 / (double) rootTime, (double) totalGCNanos * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, totalGCRuns));
 
             Collections.sort(list);
             list.add(0, new OmniProfiler.Result(sectionName, 100, (double) sectionTime * 100 / (double) rootTime, (double) sectionTime * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, gcMap.getOrDefault(sectionName, 0)));

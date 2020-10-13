@@ -29,6 +29,7 @@ public class CommandDebug extends CommandBase
     private long profileStartTime;
     private int profileStartTick;
     protected int profileStartGCRuns;
+    protected long profileStartGCTime;
 
     public String getName()
     {
@@ -134,7 +135,7 @@ public class CommandDebug extends CommandBase
 
     private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server, long timeSpan, int tickSpan)
     {
-        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, true, timeSpan, tickSpan);
+        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, tickSpan, GCMessager.prevGCRuns - profileStartGCRuns, (GCMessager.prevGCTime - profileStartGCTime) * 1000000L);
 
         for (int i = 1; i < list.size(); i++)
         {
