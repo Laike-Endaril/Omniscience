@@ -134,15 +134,11 @@ public class CommandDebug extends CommandBase
 
         if (list.size() >= 3)
         {
-            for (int i = 1; i < list.size(); ++i)
+            for (OmniProfiler.Result profilerResult : list)
             {
-                OmniProfiler.Result profilerResult = list.get(i);
                 builder.append(String.format("[%02d] ", depth));
 
-                for (int j = 0; j < depth; ++j)
-                {
-                    builder.append("|   ");
-                }
+                for (int j = 0; j < depth; ++j) builder.append("|   ");
 
                 builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%\n");
 
@@ -150,7 +146,7 @@ public class CommandDebug extends CommandBase
                 {
                     try
                     {
-                        this.appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, timeSpan, tickSpan);
+                        appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, timeSpan, tickSpan);
                     }
                     catch (Exception exception)
                     {
