@@ -1,6 +1,7 @@
 package com.fantasticsource.omniscience;
 
 import com.fantasticsource.omniscience.hack.OmniProfiler;
+import com.fantasticsource.tools.Tools;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -115,13 +116,13 @@ public class CommandDebug extends CommandBase
     private String getProfilerResults(long timeSpan, int tickSpan, MinecraftServer server)
     {
         StringBuilder stringbuilder = new StringBuilder();
-        stringbuilder.append("---- Minecraft Profiler Results ----\n");
+        stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n");
         stringbuilder.append("// ");
         stringbuilder.append(getWittyComment());
         stringbuilder.append("\n\n");
         stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
         stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-        stringbuilder.append("// This is approximately ").append(String.format("%.2f", (float) tickSpan / ((float) timeSpan / 1000))).append(" ticks per second. It should be 20 ticks per second\n\n");
+        stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
         this.appendProfilerResults(0, "root", stringbuilder, server, timeSpan, tickSpan);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
