@@ -141,7 +141,7 @@ public class CommandDebug extends CommandBase
             for (int j = 0; j < depth; ++j) builder.append("|   ");
 
             if (profilerResult.gcRuns == 0) builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%\n");
-            else builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("% (").append(profilerResult.gcRuns).append(" GC runs)\n");
+            else builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("% (").append(profilerResult.gcRuns).append(" GC run(s))\n");
 
             if (!"unspecified".equals(profilerResult.profilerName))
             {
