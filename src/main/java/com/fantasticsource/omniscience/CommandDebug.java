@@ -28,6 +28,7 @@ public class CommandDebug extends CommandBase
     private static final Logger LOGGER = LogManager.getLogger();
     private long profileStartTime;
     private int profileStartTick;
+    protected int profileStartGCRuns;
 
     public String getName()
     {
@@ -61,8 +62,9 @@ public class CommandDebug extends CommandBase
 
                 notifyCommandListener(sender, this, "commands.debug.start");
                 server.enableProfiling();
-                this.profileStartTime = MinecraftServer.getCurrentTimeMillis();
-                this.profileStartTick = server.getTickCounter();
+                profileStartTime = MinecraftServer.getCurrentTimeMillis();
+                profileStartTick = server.getTickCounter();
+                profileStartGCRuns = GCMessager.prevGCRuns;
             }
             else
             {
@@ -83,9 +85,9 @@ public class CommandDebug extends CommandBase
 
                 long i = MinecraftServer.getCurrentTimeMillis();
                 int j = server.getTickCounter();
-                long k = i - this.profileStartTime;
-                int l = j - this.profileStartTick;
-                this.saveProfilerResults(k, l, server);
+                long k = i - profileStartTime;
+                int l = j - profileStartTick;
+                saveProfilerResults(k, l, server);
                 server.profiler.profilingEnabled = false;
                 notifyCommandListener(sender, this, "commands.debug.stop", String.format("%.2f", (float) k / 1000.0F), l);
             }
@@ -101,7 +103,7 @@ public class CommandDebug extends CommandBase
         try
         {
             writer = new OutputStreamWriter(new FileOutputStream(file1), StandardCharsets.UTF_8);
-            writer.write(this.getProfilerResults(timeSpan, tickSpan, server));
+            writer.write(getProfilerResults(timeSpan, tickSpan, server));
         }
         catch (Throwable throwable)
         {
@@ -122,9 +124,10 @@ public class CommandDebug extends CommandBase
         stringbuilder.append("\n\n");
         stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
         stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-        stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n\n");
+        stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
+        stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-        this.appendProfilerResults(0, "root", stringbuilder, server, timeSpan, tickSpan);
+        appendProfilerResults(0, "root", stringbuilder, server, timeSpan, tickSpan);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
         return stringbuilder.toString();
     }
