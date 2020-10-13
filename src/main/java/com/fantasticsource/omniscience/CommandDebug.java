@@ -132,26 +132,24 @@ public class CommandDebug extends CommandBase
     {
         List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, true, timeSpan, tickSpan);
 
-        if (list.size() >= 3)
+        for (int i = 1; i < list.size(); i++)
         {
-            for (OmniProfiler.Result profilerResult : list)
+            OmniProfiler.Result profilerResult = list.get(i);
+            builder.append(String.format("[%02d] ", depth));
+
+            for (int j = 0; j < depth; ++j) builder.append("|   ");
+
+            builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%\n");
+
+            if (!"unspecified".equals(profilerResult.profilerName))
             {
-                builder.append(String.format("[%02d] ", depth));
-
-                for (int j = 0; j < depth; ++j) builder.append("|   ");
-
-                builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%\n");
-
-                if (!"unspecified".equals(profilerResult.profilerName))
+                try
                 {
-                    try
-                    {
-                        appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, timeSpan, tickSpan);
-                    }
-                    catch (Exception exception)
-                    {
-                        builder.append("[[ EXCEPTION ").append(exception).append(" ]]");
-                    }
+                    appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, timeSpan, tickSpan);
+                }
+                catch (Exception exception)
+                {
+                    builder.append("[[ EXCEPTION ").append(exception).append(" ]]");
                 }
             }
         }
