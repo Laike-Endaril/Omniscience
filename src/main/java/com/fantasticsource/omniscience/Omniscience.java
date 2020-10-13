@@ -4,7 +4,6 @@ import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omniscience.client.ClientCommands;
 import com.fantasticsource.omniscience.client.PathVisualizer;
 import com.fantasticsource.omniscience.client.ScreenDebug;
-import com.fantasticsource.omniscience.hack.OmniEventBus;
 import com.fantasticsource.omniscience.hack.OmniProfiler;
 import com.fantasticsource.tools.ReflectionTool;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -28,7 +27,7 @@ import java.lang.reflect.Field;
 @Mod(modid = Omniscience.MODID, name = Omniscience.NAME, version = Omniscience.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.037,)", acceptableRemoteVersions = "*")
 public class Omniscience
 {
-//    protected static final Field MINECRAFT_FORGE_EVENT_BUS_FIELD = ReflectionTool.getField(MinecraftForge.class, "EVENT_BUS");
+    //    protected static final Field MINECRAFT_FORGE_EVENT_BUS_FIELD = ReflectionTool.getField(MinecraftForge.class, "EVENT_BUS");
     protected static final Field MINECRAFT_SERVER_PROFILER_FIELD = ReflectionTool.getField(MinecraftServer.class, "field_71304_b", "profiler");
 
     public static final String MODID = "omniscience";
@@ -83,10 +82,9 @@ public class Omniscience
         {
             if (LagDetector.init(event, server)) System.out.println(TextFormatting.LIGHT_PURPLE + "Starting LagDetector");
             else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector; the watchdog timeout setting is 0");
-
-            GCMessager.init(event);
-            System.out.println(TextFormatting.LIGHT_PURPLE + "Starting GCMessager");
         }
-        else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector or GCMessager; we are not running in dedicated server mode");
+        else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector; we are not running in dedicated server mode");
+
+        GCMessager.init(event);
     }
 }

@@ -11,11 +11,17 @@ import java.lang.management.ManagementFactory;
 
 public class GCMessager
 {
+    protected static boolean initialized = false;
     protected static int prevGCRuns = 0;
 
     public static void init(FMLServerStartedEvent event)
     {
-        MinecraftForge.EVENT_BUS.register(GCMessager.class);
+        System.out.println(TextFormatting.LIGHT_PURPLE + "Starting GCMessager");
+        if (!initialized)
+        {
+            MinecraftForge.EVENT_BUS.register(GCMessager.class);
+            initialized = true;
+        }
         for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) prevGCRuns += gcBean.getCollectionCount();
     }
 
