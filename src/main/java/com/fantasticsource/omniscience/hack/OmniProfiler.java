@@ -1,6 +1,7 @@
 package com.fantasticsource.omniscience.hack;
 
 import com.fantasticsource.tools.ReflectionTool;
+import com.fantasticsource.tools.Tools;
 import com.google.common.collect.Lists;
 import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.relauncher.Side;
@@ -57,7 +58,7 @@ public class OmniProfiler extends Profiler
     }
 
 
-    public List<OmniProfiler.Result> getProfilingData(String profilerName, boolean omni)
+    public List<OmniProfiler.Result> getProfilingData(String parentSectionName, boolean omni, long timeSpan, int tickSpan)
     {
         if (!profilingEnabled)
         {
@@ -65,46 +66,34 @@ public class OmniProfiler extends Profiler
         }
         else
         {
-            long i = profilingMap.getOrDefault("root", 0L);
-            long j = profilingMap.getOrDefault(profilerName, 0L);
+            long rootTime = profilingMap.getOrDefault("root", 0L);
             List<OmniProfiler.Result> list = Lists.newArrayList();
 
-            if (!profilerName.isEmpty())
-            {
-                profilerName = profilerName + ".";
-            }
+            if (!parentSectionName.isEmpty()) parentSectionName = parentSectionName + ".";
 
-            long k = 0L;
-
+            long sectionTime = 0L;
             for (String s : profilingMap.keySet())
             {
-                if (s.length() > profilerName.length() && s.startsWith(profilerName) && s.indexOf(".", profilerName.length() + 1) < 0)
+                if (s.length() > parentSectionName.length() && s.startsWith(parentSectionName) && s.indexOf(".", parentSectionName.length() + 1) < 0)
                 {
-                    k += profilingMap.get(s);
+                    sectionTime += profilingMap.get(s);
                 }
             }
 
-            float f = (float) k;
+            float subsectionTimeSum = sectionTime;
+            sectionTime = Tools.max(sectionTime, profilingMap.getOrDefault(parentSectionName, 0L));
 
-            if (k < j)
-            {
-                k = j;
-            }
-
-            if (i < k)
-            {
-                i = k;
-            }
+            if (rootTime < sectionTime) rootTime = sectionTime;
 
             for (String s1 : profilingMap.keySet())
             {
-                if (s1.length() > profilerName.length() && s1.startsWith(profilerName) && s1.indexOf(".", profilerName.length() + 1) < 0)
+                if (s1.length() > parentSectionName.length() && s1.startsWith(parentSectionName) && s1.indexOf(".", parentSectionName.length() + 1) < 0)
                 {
                     long l = profilingMap.get(s1);
-                    double d0 = (double) l * 100.0D / (double) k;
-                    double d1 = (double) l * 100.0D / (double) i;
-                    double d2 = (double) l / (double) NORMAL_TICK_TIME_NANOS;
-                    String s2 = s1.substring(profilerName.length());
+                    double d0 = (double) l * 100 / (double) sectionTime;
+                    double d1 = (double) l * 100 / (double) rootTime;
+                    double d2 = (double) l * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan;
+                    String s2 = s1.substring(parentSectionName.length());
                     list.add(new OmniProfiler.Result(s2, d0, d1, d2));
                 }
             }
@@ -114,13 +103,13 @@ public class OmniProfiler extends Profiler
                 profilingMap.put(s3, profilingMap.get(s3) * 999L / 1000L);
             }
 
-            if ((float) k > f)
+            if ((float) sectionTime > subsectionTimeSum)
             {
-                list.add(new OmniProfiler.Result("unspecified", (double) ((float) k - f) * 100.0D / (double) k, (double) ((float) k - f) * 100.0D / (double) i, (double) ((float) k - f) / (double) NORMAL_TICK_TIME_NANOS));
+                list.add(new OmniProfiler.Result("unspecified", (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) sectionTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) rootTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan));
             }
 
             Collections.sort(list);
-            list.add(0, new OmniProfiler.Result(profilerName, 100.0D, (double) k * 100.0D / (double) i, (double) k / (double) NORMAL_TICK_TIME_NANOS));
+            list.add(0, new OmniProfiler.Result(parentSectionName, 100, (double) sectionTime * 100 / (double) rootTime, (double) sectionTime * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan));
             return list;
         }
     }

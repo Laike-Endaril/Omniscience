@@ -121,16 +121,16 @@ public class CommandDebug extends CommandBase
         stringbuilder.append("\n\n");
         stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
         stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-        stringbuilder.append("// This is approximately ").append(String.format("%.2f", (float) tickSpan / ((float) timeSpan / 1000.0F))).append(" ticks per second. It should be ").append((int) 20).append(" ticks per second\n\n");
+        stringbuilder.append("// This is approximately ").append(String.format("%.2f", (float) tickSpan / ((float) timeSpan / 1000))).append(" ticks per second. It should be 20 ticks per second\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-        this.appendProfilerResults(0, "root", stringbuilder, server);
+        this.appendProfilerResults(0, "root", stringbuilder, server, timeSpan, tickSpan);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
         return stringbuilder.toString();
     }
 
-    private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server)
+    private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server, long timeSpan, int tickSpan)
     {
-        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, true);
+        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, true, timeSpan, tickSpan);
 
         if (list.size() >= 3)
         {
@@ -150,7 +150,7 @@ public class CommandDebug extends CommandBase
                 {
                     try
                     {
-                        this.appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server);
+                        this.appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, timeSpan, tickSpan);
                     }
                     catch (Exception exception)
                     {
