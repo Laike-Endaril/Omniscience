@@ -1,8 +1,8 @@
 [
 {
-  "modid": "omniscience",
-  "name": "Omniscience",
-  "description": "An attempt at a be-all, end-all MC/Forge/Mod debugger",
+  "modid": "omnisciencedebugger",
+  "name": "Omniscience Debugger",
+  "description": "An attempt at a be-all, end-all MC/Forge/Mod debugger...someday...maybe",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
