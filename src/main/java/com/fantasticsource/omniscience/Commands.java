@@ -120,9 +120,9 @@ public class Commands extends CommandBase
             case 3:
                 switch (args[0])
                 {
-                    case "threads":
-                        result.add("stop");
-                        break;
+//                    case "threads":
+//                        result.add("stop");
+//                        break;
                 }
                 break;
         }
@@ -190,12 +190,13 @@ public class Commands extends CommandBase
                     }
                     else
                     {
-                        if (args[2].equals("stop"))
-                        {
-                            thread.stop();
-                            notifyCommandListener(sender, this, "Stopping thread " + id + " (" + thread.getName() + ")");
-                        }
-                        else notifyCommandListener(sender, this, subUsage(cmd));
+//                        if (args[2].equals("stop"))
+//                        {
+//                            thread.stop();
+//                            notifyCommandListener(sender, this, "Stopping thread " + id + " (" + thread.getName() + ")");
+//                        }
+//                        else
+                            notifyCommandListener(sender, this, subUsage(cmd));
                     }
                 }
                 else notifyCommandListener(sender, this, subUsage(cmd));
