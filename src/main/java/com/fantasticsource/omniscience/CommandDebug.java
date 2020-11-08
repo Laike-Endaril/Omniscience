@@ -66,6 +66,7 @@ public class CommandDebug extends CommandBase
                 profileStartTime = MinecraftServer.getCurrentTimeMillis();
                 profileStartTick = server.getTickCounter();
                 profileStartGCRuns = GCMessager.prevGCRuns;
+                profileStartGCTime = GCMessager.prevGCTime;
             }
             else
             {
@@ -128,12 +129,12 @@ public class CommandDebug extends CommandBase
         stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
         stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-        appendProfilerResults(0, "root", stringbuilder, server, timeSpan, tickSpan);
+        appendProfilerResults(0, "root", stringbuilder, server, tickSpan);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
         return stringbuilder.toString();
     }
 
-    private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server, long timeSpan, int tickSpan)
+    private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server, int tickSpan)
     {
         List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, tickSpan, GCMessager.prevGCRuns - profileStartGCRuns, (GCMessager.prevGCTime - profileStartGCTime) * 1000000L);
 
@@ -151,7 +152,7 @@ public class CommandDebug extends CommandBase
             {
                 try
                 {
-                    appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, timeSpan, tickSpan);
+                    appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, tickSpan);
                 }
                 catch (Exception exception)
                 {
