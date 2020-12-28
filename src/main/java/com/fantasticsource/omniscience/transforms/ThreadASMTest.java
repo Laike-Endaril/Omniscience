@@ -10,6 +10,7 @@ public class ThreadASMTest extends Thread
 
     private static byte[] threadEditBytes = null;
 
+    //Creates an edited classfile, so you can open it and see if it looks right
     public static void main(String[] args) throws IOException
     {
         //Write the output to a class file
@@ -32,7 +33,7 @@ public class ThreadASMTest extends Thread
         return threadEditBytes;
     }
 
-    //Our class modifier class visitor. It delegate all calls to the super class
+    //Our class modifier class visitor. It delegates all calls to the super class
     //Only makes sure that it returns our MethodVisitor for every method
     public static class ModifierClassWriter extends ClassVisitor
     {

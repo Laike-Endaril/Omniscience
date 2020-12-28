@@ -6,8 +6,10 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,18 +87,21 @@ public class CommandDebug extends CommandBase
                     throw new CommandException("commands.debug.notStarted");
                 }
 
-                long i = MinecraftServer.getCurrentTimeMillis();
-                int j = server.getTickCounter();
-                long k = i - profileStartTime;
-                int l = j - profileStartTick;
-                saveProfilerResults(k, l, server);
+                long timeSpan = MinecraftServer.getCurrentTimeMillis() - profileStartTime;
+                int tickSpan = server.getTickCounter() - profileStartTick;
+                String profilerResults = getProfilerResults(timeSpan, tickSpan, server);
                 server.profiler.profilingEnabled = false;
-                notifyCommandListener(sender, this, "commands.debug.stop", String.format("%.2f", (float) k / 1000.0F), l);
+
+                saveProfilerResults(server, profilerResults);
+
+                notifyCommandListener(sender, this, "commands.debug.stop", String.format("%.2f", (float) timeSpan / 1000.0F), tickSpan);
+
+                if (sender instanceof EntityPlayerMP) sendProfilerResults((EntityPlayerMP) sender, profilerResults);
             }
         }
     }
 
-    private void saveProfilerResults(long timeSpan, int tickSpan, MinecraftServer server)
+    private void saveProfilerResults(MinecraftServer server, String profilerResults)
     {
         File file1 = new File(server.getFile("debug"), "profile-results-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + ".txt");
         file1.getParentFile().mkdirs();
@@ -105,7 +110,7 @@ public class CommandDebug extends CommandBase
         try
         {
             writer = new OutputStreamWriter(new FileOutputStream(file1), StandardCharsets.UTF_8);
-            writer.write(getProfilerResults(timeSpan, tickSpan, server));
+            writer.write(profilerResults);
         }
         catch (Throwable throwable)
         {
@@ -114,6 +119,14 @@ public class CommandDebug extends CommandBase
         finally
         {
             IOUtils.closeQuietly(writer);
+        }
+    }
+
+    private void sendProfilerResults(EntityPlayerMP player, String profilerResults)
+    {
+        for (String s : Tools.fixedSplit(profilerResults, "\n"))
+        {
+            player.sendMessage(new TextComponentString(s));
         }
     }
 
