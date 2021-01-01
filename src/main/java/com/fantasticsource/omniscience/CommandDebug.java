@@ -25,8 +25,6 @@ import java.util.List;
 
 public class CommandDebug extends CommandBase
 {
-    public static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
-
     public String getName()
     {
         return "debug";
@@ -44,69 +42,40 @@ public class CommandDebug extends CommandBase
 
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        if (args.length < 1)
+        if (args.length < 1) throw new WrongUsageException("commands.debug.usage");
+
+        if (args[0].equals("start"))
         {
-            throw new WrongUsageException("commands.debug.usage");
+            OmniProfiler profiler = (OmniProfiler) server.profiler;
+            notifyCommandListener(sender, this, profiler.startProfiling());
         }
-        else
+        else if (args[0].equals("stop"))
         {
-            if ("start".equals(args[0]))
+            OmniProfiler profiler = (OmniProfiler) server.profiler;
+            notifyCommandListener(sender, this, profiler.stopProfiling(results ->
             {
-                if (args.length != 1)
-                {
-                    throw new WrongUsageException("commands.debug.usage");
-                }
-
-                notifyCommandListener(sender, this, "commands.debug.start");
-                server.enableProfiling();
-                OmniProfiler.SectionNode root = ((OmniProfiler) server.profiler).root;
-                root.startState = null;
-                root.children.clear();
-            }
-            else
-            {
-                if (!"stop".equals(args[0]))
-                {
-                    throw new WrongUsageException("commands.debug.usage");
-                }
-
-                if (args.length != 1)
-                {
-                    throw new WrongUsageException("commands.debug.usage");
-                }
-
-                if (!server.profiler.profilingEnabled)
-                {
-                    throw new CommandException("commands.debug.notStarted");
-                }
-
-                String profilerResults = getProfilerResults(timeSpan, tickSpan, server);
-                server.profiler.profilingEnabled = false;
-                server.profi
-
+                String profilerResults = results.toString();
                 saveProfilerResults(server, profilerResults);
-
-                notifyCommandListener(sender, this, "commands.debug.stop", String.format("%.2f", (float) timeSpan / 1000.0F), tickSpan);
-
                 if (sender instanceof EntityPlayerMP) sendProfilerResults((EntityPlayerMP) sender, profilerResults);
-            }
+                return true;
+            }));
         }
+        else throw new WrongUsageException(getUsage(sender));
     }
 
     private void saveProfilerResults(MinecraftServer server, String profilerResults)
     {
-        File file1 = new File(server.getFile("debug"), "profile-results-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + ".txt");
-        file1.getParentFile().mkdirs();
+        File file = new File(server.getFile("debug"), "profile-results-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + ".txt");
+        file.getParentFile().mkdirs();
         Writer writer = null;
-
         try
         {
-            writer = new OutputStreamWriter(new FileOutputStream(file1), StandardCharsets.UTF_8);
+            writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
             writer.write(profilerResults);
         }
         catch (Throwable throwable)
         {
-            LOGGER.error("Could not save profiler results to {}", file1, throwable);
+            System.err.println("Could not save profiler results to " + file + throwable);
         }
         finally
         {
@@ -120,21 +89,6 @@ public class CommandDebug extends CommandBase
         {
             player.sendMessage(new TextComponentString(s));
         }
-    }
-
-    private String getProfilerResults(long timeSpan, int tickSpan, MinecraftServer server)
-    {
-        StringBuilder stringbuilder = new StringBuilder();
-        stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n\n");
-        stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
-        stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-        stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
-        stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n");
-        stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
-        stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-        //TODO
-        stringbuilder.append("--- END PROFILE DUMP ---\n\n");
-        return stringbuilder.toString();
     }
 
     public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)

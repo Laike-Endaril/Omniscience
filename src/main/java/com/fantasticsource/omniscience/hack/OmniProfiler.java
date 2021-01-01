@@ -2,6 +2,9 @@ package com.fantasticsource.omniscience.hack;
 
 import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omniscience.Debug;
+import com.fantasticsource.omniscience.GCMessager;
+import com.fantasticsource.omniscience.Omniscience;
+import com.fantasticsource.tools.Tools;
 import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -10,15 +13,18 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.function.Predicate;
 
 public class OmniProfiler extends Profiler
 {
+    public static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
     public static final OmniProfiler INSTANCE = new OmniProfiler();
 
     protected static final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
     protected static SectionNode currentNode = null;
     protected static boolean starting = false, active = false;
-    protected static ArrayList<Runnable> stoppingCallbacks = new ArrayList<>();
+    protected static ArrayList<Predicate<Results>> stoppingCallbacks = new ArrayList<>();
+    protected static Results lastRunResults = null;
 
     protected OmniProfiler()
     {
@@ -51,7 +57,7 @@ public class OmniProfiler extends Profiler
      * A stop can be queued if the profiler is already running, or if it is starting (the latter will result in a 1-tick profiler run)
      * Callbacks will be called unless there is an error (eg. different number of calls to startSection and endSection in one tick)
      */
-    public String stopProfiling(Runnable callback)
+    public String stopProfiling(Predicate<Results> callback)
     {
         if (!active && !starting) return "Profiler is not running or starting";
 
@@ -73,16 +79,20 @@ public class OmniProfiler extends Profiler
                 throw new IllegalStateException("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!  The stacktrace from this is probably not pointing at the actual issue!");
             }
 
+            lastRunResults = new Results(PER_TICK_DATA);
+            PER_TICK_DATA.clear();
+
             if (stoppingCallbacks.size() > 0)
             {
-                Runnable[] callbacks = stoppingCallbacks.toArray(new Runnable[0]);
+                Predicate<Results>[] callbacks = stoppingCallbacks.toArray(new Predicate[0]);
 
                 active = false;
                 stoppingCallbacks.clear();
 
-                for (Runnable callback : callbacks) callback.run();
+                for (Predicate<Results> callback : callbacks) callback.test(lastRunResults);
             }
         }
+
 
         if (!active && starting)
         {
@@ -129,6 +139,11 @@ public class OmniProfiler extends Profiler
         }
     }
 
+    public static Results getLastRunResults()
+    {
+        return lastRunResults;
+    }
+
 
     public static class RuntimeState
     {
@@ -159,6 +174,32 @@ public class OmniProfiler extends Profiler
         public SectionNode(SectionNode parent)
         {
             this.parent = parent;
+        }
+    }
+
+    public static class Results
+    {
+        public final LinkedHashMap<Long, SectionNode> perTickData;
+
+        public Results(LinkedHashMap<Long, SectionNode> perTickData)
+        {
+            this.perTickData = perTickData;
+        }
+
+        @Override
+        public String toString()
+        {
+            StringBuilder stringbuilder = new StringBuilder();
+            stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n\n");
+            stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
+            stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
+            stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
+            stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n");
+            stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
+            stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
+            //TODO
+            stringbuilder.append("--- END PROFILE DUMP ---\n\n");
+            return stringbuilder.toString();
         }
     }
 }
