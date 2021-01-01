@@ -28,10 +28,11 @@ import java.util.List;
 public class CommandDebug extends CommandBase
 {
     private static final Logger LOGGER = LogManager.getLogger();
-    private long profileStartTime;
-    private int profileStartTick;
-    protected int profileStartGCRuns;
-    protected long profileStartGCTime;
+    protected static long profileStartTime;
+    protected static int profileStartTick;
+    protected static int profileStartGCRuns;
+    protected static long profileStartGCTime;
+    public static long totalHeapUsage;
 
     public String getName()
     {
@@ -69,6 +70,7 @@ public class CommandDebug extends CommandBase
                 profileStartTick = server.getTickCounter();
                 profileStartGCRuns = GCMessager.prevGCRuns;
                 profileStartGCTime = GCMessager.prevGCTime;
+                totalHeapUsage = 0;
             }
             else
             {
@@ -140,7 +142,8 @@ public class CommandDebug extends CommandBase
         stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
         stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
         stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
-        stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n\n");
+        stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n");
+        stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
         appendProfilerResults(0, "root", stringbuilder, server, tickSpan);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
@@ -149,7 +152,7 @@ public class CommandDebug extends CommandBase
 
     private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server, int tickSpan)
     {
-        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, tickSpan, GCMessager.prevGCRuns - profileStartGCRuns, (GCMessager.prevGCTime - profileStartGCTime) * 1000000L);
+        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, tickSpan, GCMessager.prevGCRuns - profileStartGCRuns, (GCMessager.prevGCTime - profileStartGCTime) * 1000000L, totalHeapUsage);
 
         for (int i = 1; i < list.size(); i++)
         {
@@ -158,8 +161,8 @@ public class CommandDebug extends CommandBase
 
             for (int j = 0; j < depth; ++j) builder.append("|   ");
 
-            if (profilerResult.gcRuns == 0) builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%\n");
-            else builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("% (").append(profilerResult.gcRuns).append(" GC run(s))\n");
+            if (profilerResult.gcRuns == 0) builder.append(profilerResult.profilerName).append(" - CPU: ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%, Heap: ").append(profilerResult.heapUsage).append("\n");
+            else builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%, Heap: ").append(profilerResult.heapUsage).append(" (").append(profilerResult.gcRuns).append(" GC run(s))\n");
 
             if (!"unspecified".equals(profilerResult.profilerName))
             {

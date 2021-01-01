@@ -1,5 +1,7 @@
 package com.fantasticsource.omniscience.hack;
 
+import com.fantasticsource.omniscience.CommandDebug;
+import com.fantasticsource.omniscience.Debug;
 import com.fantasticsource.tools.ReflectionTool;
 import com.fantasticsource.tools.Tools;
 import com.google.common.collect.Lists;
@@ -18,6 +20,7 @@ import java.util.Map;
 public class OmniProfiler extends Profiler
 {
     protected static int prevGCRuns = 0;
+    protected static long prevHeapUsage = 0;
     protected static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
     protected static final Field
             PROFILER_PROFILING_SECTION_FIELD = ReflectionTool.getField(Profiler.class, "field_76323_d", "profilingSection"),
@@ -29,6 +32,7 @@ public class OmniProfiler extends Profiler
     protected List<Long> timestampList;
     protected Map<String, Long> profilingMap;
     protected HashMap<String, Integer> gcMap = new HashMap<>();
+    protected HashMap<String, Long> heapMap = new HashMap<>();
 
     public OmniProfiler()
     {
@@ -43,6 +47,8 @@ public class OmniProfiler extends Profiler
         if (profilingEnabled)
         {
             super.startSection(name);
+
+            prevHeapUsage = Debug.usedMemory();
 
             prevGCRuns = 0;
             for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) prevGCRuns += gcBean.getCollectionCount();
@@ -69,6 +75,16 @@ public class OmniProfiler extends Profiler
                 profilingMap.put(profilingSection, k);
             }
 
+            long heapUsage = Debug.usedMemory();
+            if (heapUsage > prevHeapUsage)
+            {
+                long dif = heapUsage - prevHeapUsage;
+                CommandDebug.totalHeapUsage += dif;
+                if (heapMap.containsKey(profilingSection)) heapMap.put(profilingSection, dif + heapMap.get(profilingSection));
+                else heapMap.put(profilingSection, dif);
+            }
+            prevHeapUsage = heapUsage; //Need to reset this even if it goes DOWN due to a GC
+
             int gcRuns = 0;
             for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) gcRuns += gcBean.getCollectionCount();
             if (gcRuns > prevGCRuns)
@@ -83,7 +99,7 @@ public class OmniProfiler extends Profiler
     }
 
 
-    public List<OmniProfiler.Result> getProfilingData(String sectionName, int tickSpan, int totalGCRuns, long totalGCNanos)
+    public List<OmniProfiler.Result> getProfilingData(String sectionName, int tickSpan, int totalGCRuns, long totalGCNanos, long totalHeapUsage)
     {
         if (!profilingEnabled)
         {
@@ -119,7 +135,7 @@ public class OmniProfiler extends Profiler
                     double d1 = (double) l * 100 / (double) rootTime;
                     double d2 = (double) l * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan;
                     String s2 = s1.substring(sectionName.length());
-                    list.add(new OmniProfiler.Result(s2, d0, d1, d2, gcMap.getOrDefault(s1, 0)));
+                    list.add(new OmniProfiler.Result(s2, d0, d1, d2, gcMap.getOrDefault(s1, 0), heapMap.getOrDefault(s1, 0L)));
                 }
             }
 
@@ -130,13 +146,13 @@ public class OmniProfiler extends Profiler
 
             if ((float) sectionTime > subsectionTimeSum)
             {
-                list.add(new OmniProfiler.Result("unspecified", (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) sectionTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) rootTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, 0));
+                list.add(new OmniProfiler.Result("unspecified", (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) sectionTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) rootTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, 0, 0));
             }
 
-            if (sectionName.equals("root.")) list.add(new OmniProfiler.Result("GC", (double) totalGCNanos * 100 / (double) sectionTime, (double) totalGCNanos * 100 / (double) rootTime, (double) totalGCNanos * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, totalGCRuns));
+            if (sectionName.equals("root.")) list.add(new OmniProfiler.Result("GC", (double) totalGCNanos * 100 / (double) sectionTime, (double) totalGCNanos * 100 / (double) rootTime, (double) totalGCNanos * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, totalGCRuns, totalHeapUsage));
 
             Collections.sort(list);
-            list.add(0, new OmniProfiler.Result(sectionName, 100, (double) sectionTime * 100 / (double) rootTime, (double) sectionTime * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, gcMap.getOrDefault(sectionName, 0)));
+            list.add(0, new OmniProfiler.Result(sectionName, 100, (double) sectionTime * 100 / (double) rootTime, (double) sectionTime * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, gcMap.getOrDefault(sectionName, 0), heapMap.getOrDefault(sectionName, 0L)));
             return list;
         }
     }
@@ -147,21 +163,23 @@ public class OmniProfiler extends Profiler
         public String profilerName;
         public double usePercentage, totalUsePercentage, tickUsePercentage;
         public int gcRuns;
+        public long heapUsage;
 
-        public Result(String profilerName, double usePercentage, double totalUsePercentage, double tickUsePercentage, int gcRuns)
+        public Result(String profilerName, double usePercentage, double totalUsePercentage, double tickUsePercentage, int gcRuns, long heapUsage)
         {
             this.profilerName = profilerName;
             this.usePercentage = usePercentage;
             this.totalUsePercentage = totalUsePercentage;
             this.tickUsePercentage = tickUsePercentage;
             this.gcRuns = gcRuns;
+            this.heapUsage = heapUsage;
         }
 
-        public int compareTo(Result p_compareTo_1_)
+        public int compareTo(Result other)
         {
-            if (p_compareTo_1_.usePercentage < usePercentage) return -1;
-            if (p_compareTo_1_.usePercentage > usePercentage) return 1;
-            return p_compareTo_1_.profilerName.compareTo(profilerName);
+            if (other.usePercentage < usePercentage) return -1;
+            if (other.usePercentage > usePercentage) return 1;
+            return other.profilerName.compareTo(profilerName);
         }
 
         @SideOnly(Side.CLIENT)
