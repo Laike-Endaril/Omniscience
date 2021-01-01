@@ -6,6 +6,7 @@ import com.sun.management.ThreadMXBean;
 import net.minecraft.util.text.TextFormatting;
 import org.objectweb.asm.util.ASMifier;
 
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadInfo;
@@ -176,6 +177,14 @@ public class Debug
     {
         long max = maxMemory(), allocated = allocatedMemory(), used = usedMemory();
         return "MEMORY ... Current: " + used + "/" + allocated + " (~" + (int) ((double) used / allocated * 100) + "%) ... Max: " + allocated + "/" + max + " (~" + (int) ((double) allocated / max * 100) + "%)";
+    }
+
+
+    public static int gcRuns()
+    {
+        int gcRuns = 0;
+        for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) gcRuns += gcBean.getCollectionCount();
+        return gcRuns;
     }
 
 

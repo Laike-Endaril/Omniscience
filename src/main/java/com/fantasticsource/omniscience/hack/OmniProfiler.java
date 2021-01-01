@@ -1,191 +1,164 @@
 package com.fantasticsource.omniscience.hack;
 
-import com.fantasticsource.omniscience.CommandDebug;
+import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omniscience.Debug;
-import com.fantasticsource.tools.ReflectionTool;
-import com.fantasticsource.tools.Tools;
-import com.google.common.collect.Lists;
 import net.minecraft.profiler.Profiler;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
-import java.lang.reflect.Field;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class OmniProfiler extends Profiler
 {
-    protected static int prevGCRuns = 0;
-    protected static long prevHeapUsage = 0;
-    protected static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
-    protected static final Field
-            PROFILER_PROFILING_SECTION_FIELD = ReflectionTool.getField(Profiler.class, "field_76323_d", "profilingSection"),
-            PROFILER_SECTION_LIST_FIELD = ReflectionTool.getField(Profiler.class, "field_76325_b", "sectionList"),
-            PROFILER_TIMESTAMP_LIST_FIELD = ReflectionTool.getField(Profiler.class, "field_76326_c", "timestampList"),
-            PROFILER_PROFILING_MAP_FIELD = ReflectionTool.getField(Profiler.class, "field_76324_e", "profilingMap");
+    public static final OmniProfiler INSTANCE = new OmniProfiler();
 
-    protected List<String> sectionList;
-    protected List<Long> timestampList;
-    protected Map<String, Long> profilingMap;
-    protected HashMap<String, Integer> gcMap = new HashMap<>();
-    protected HashMap<String, Long> heapMap = new HashMap<>();
+    protected static final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
+    protected static SectionNode currentNode = null;
+    protected static boolean starting = false, active = false;
+    protected static ArrayList<Runnable> stoppingCallbacks = new ArrayList<>();
 
-    public OmniProfiler()
+    protected OmniProfiler()
     {
-        sectionList = (List<String>) ReflectionTool.get(PROFILER_SECTION_LIST_FIELD, this);
-        timestampList = (List<Long>) ReflectionTool.get(PROFILER_TIMESTAMP_LIST_FIELD, this);
-        profilingMap = (Map<String, Long>) ReflectionTool.get(PROFILER_PROFILING_MAP_FIELD, this);
+    }
+
+    public static void reset()
+    {
+        PER_TICK_DATA.clear();
+        currentNode = null;
+        stoppingCallbacks.clear();
+        starting = false;
+        active = false;
+    }
+
+    /**
+     * @return human-readable result of this call (success or error)
+     * A start can only be queued if the profiler is not already running or starting
+     */
+    public String startProfiling()
+    {
+        if (starting) return "Profiler is already starting";
+        if (active) return "Profiler is already running";
+
+        starting = true;
+        return "Starting profiler";
+    }
+
+    /**
+     * @return human-readable result of this call (success or error)
+     * A stop can be queued if the profiler is already running, or if it is starting (the latter will result in a 1-tick profiler run)
+     * Callbacks will be called unless there is an error (eg. different number of calls to startSection and endSection in one tick)
+     */
+    public String stopProfiling(Runnable callback)
+    {
+        if (!active && !starting) return "Profiler is not running or starting";
+
+        stoppingCallbacks.add(callback);
+        return "Stopping profiler";
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void serverTick(TickEvent.ServerTickEvent event)
+    {
+        if (event.phase != TickEvent.Phase.START) return;
+
+        if (active)
+        {
+            INSTANCE.endSection();
+            if (currentNode != null)
+            {
+                reset();
+                throw new IllegalStateException("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!  The stacktrace from this is probably not pointing at the actual issue!");
+            }
+
+            if (stoppingCallbacks.size() > 0)
+            {
+                Runnable[] callbacks = stoppingCallbacks.toArray(new Runnable[0]);
+
+                active = false;
+                stoppingCallbacks.clear();
+
+                for (Runnable callback : callbacks) callback.run();
+            }
+        }
+
+        if (!active && starting)
+        {
+            PER_TICK_DATA.clear();
+            currentNode = new SectionNode(true);
+            PER_TICK_DATA.put(ServerTickTimer.currentTick(), currentNode);
+
+            active = true;
+            starting = false;
+        }
     }
 
     @Override
     public void startSection(String name)
     {
-        if (profilingEnabled)
+        if (active)
         {
-            super.startSection(name);
-
-            prevHeapUsage = Debug.usedMemory();
-
-            prevGCRuns = 0;
-            for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) prevGCRuns += gcBean.getCollectionCount();
+            currentNode = currentNode.children.computeIfAbsent(name, o -> new SectionNode(currentNode));
+            currentNode.startState = new RuntimeState();
         }
     }
 
     public void endSection()
     {
-        if (profilingEnabled)
+        if (active)
         {
-            long i = System.nanoTime();
-            long j = timestampList.remove(timestampList.size() - 1);
-            sectionList.remove(sectionList.size() - 1);
-            long k = i - j;
-
-            String profilingSection = (String) ReflectionTool.get(PROFILER_PROFILING_SECTION_FIELD, this);
-
-            if (profilingMap.containsKey(profilingSection))
+            if (currentNode == null)
             {
-                profilingMap.put(profilingSection, profilingMap.get(profilingSection) + k);
+                reset();
+                throw new IllegalStateException("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!  The stacktrace from this is probably not pointing at the actual issue!");
             }
             else
             {
-                profilingMap.put(profilingSection, k);
-            }
+                RuntimeState startState = currentNode.startState;
+                currentNode.nanos += System.nanoTime() - startState.nanoTime;
+                currentNode.gcRuns += Debug.gcRuns() - startState.gcRuns;
+                long dif = Debug.usedMemory() - startState.heapUsage;
+                if (dif > 0) currentNode.heapUsage += dif;
 
-            long heapUsage = Debug.usedMemory();
-            if (heapUsage > prevHeapUsage)
-            {
-                long dif = heapUsage - prevHeapUsage;
-                CommandDebug.totalHeapUsage += dif;
-                if (heapMap.containsKey(profilingSection)) heapMap.put(profilingSection, dif + heapMap.get(profilingSection));
-                else heapMap.put(profilingSection, dif);
-            }
-            prevHeapUsage = heapUsage; //Need to reset this even if it goes DOWN due to a GC
+                currentNode.startState = null;
 
-            int gcRuns = 0;
-            for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) gcRuns += gcBean.getCollectionCount();
-            if (gcRuns > prevGCRuns)
-            {
-                if (gcMap.containsKey(profilingSection)) gcMap.put(profilingSection, gcRuns - prevGCRuns + gcMap.get(profilingSection));
-                else gcMap.put(profilingSection, gcRuns - prevGCRuns);
-                prevGCRuns = gcRuns;
+                currentNode = currentNode.parent;
             }
-
-            ReflectionTool.set(PROFILER_PROFILING_SECTION_FIELD, this, sectionList.isEmpty() ? "" : sectionList.get(sectionList.size() - 1));
         }
     }
 
 
-    public List<OmniProfiler.Result> getProfilingData(String sectionName, int tickSpan, int totalGCRuns, long totalGCNanos, long totalHeapUsage)
+    public static class RuntimeState
     {
-        if (!profilingEnabled)
-        {
-            return Collections.emptyList();
-        }
-        else
-        {
-            long rootTime = profilingMap.getOrDefault("root", 0L);
-            List<OmniProfiler.Result> list = Lists.newArrayList();
-
-            if (!sectionName.isEmpty()) sectionName = sectionName + ".";
-
-            long sectionTime = 0L;
-            for (String s : profilingMap.keySet())
-            {
-                if (s.length() > sectionName.length() && s.startsWith(sectionName) && s.indexOf(".", sectionName.length() + 1) < 0)
-                {
-                    sectionTime += profilingMap.get(s);
-                }
-            }
-
-            float subsectionTimeSum = sectionTime;
-            sectionTime = Tools.max(sectionTime, profilingMap.getOrDefault(sectionName, 0L));
-
-            if (rootTime < sectionTime) rootTime = sectionTime;
-
-            for (String s1 : profilingMap.keySet())
-            {
-                if (s1.length() > sectionName.length() && s1.startsWith(sectionName) && s1.indexOf(".", sectionName.length() + 1) < 0)
-                {
-                    long l = profilingMap.get(s1);
-                    double d0 = (double) l * 100 / (double) sectionTime;
-                    double d1 = (double) l * 100 / (double) rootTime;
-                    double d2 = (double) l * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan;
-                    String s2 = s1.substring(sectionName.length());
-                    list.add(new OmniProfiler.Result(s2, d0, d1, d2, gcMap.getOrDefault(s1, 0), heapMap.getOrDefault(s1, 0L)));
-                }
-            }
-
-            for (String s3 : profilingMap.keySet())
-            {
-                profilingMap.put(s3, profilingMap.get(s3) * 999L / 1000L);
-            }
-
-            if ((float) sectionTime > subsectionTimeSum)
-            {
-                list.add(new OmniProfiler.Result("unspecified", (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) sectionTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) rootTime, (double) ((float) sectionTime - subsectionTimeSum) * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, 0, 0));
-            }
-
-            if (sectionName.equals("root.")) list.add(new OmniProfiler.Result("GC", (double) totalGCNanos * 100 / (double) sectionTime, (double) totalGCNanos * 100 / (double) rootTime, (double) totalGCNanos * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, totalGCRuns, totalHeapUsage));
-
-            Collections.sort(list);
-            list.add(0, new OmniProfiler.Result(sectionName, 100, (double) sectionTime * 100 / (double) rootTime, (double) sectionTime * 100 / (double) NORMAL_TICK_TIME_NANOS / (double) tickSpan, gcMap.getOrDefault(sectionName, 0), heapMap.getOrDefault(sectionName, 0L)));
-            return list;
-        }
-    }
-
-
-    public static final class Result implements Comparable<Result>
-    {
-        public String profilerName;
-        public double usePercentage, totalUsePercentage, tickUsePercentage;
+        public long nanoTime, heapUsage;
         public int gcRuns;
-        public long heapUsage;
 
-        public Result(String profilerName, double usePercentage, double totalUsePercentage, double tickUsePercentage, int gcRuns, long heapUsage)
+        public RuntimeState()
         {
-            this.profilerName = profilerName;
-            this.usePercentage = usePercentage;
-            this.totalUsePercentage = totalUsePercentage;
-            this.tickUsePercentage = tickUsePercentage;
-            this.gcRuns = gcRuns;
-            this.heapUsage = heapUsage;
+            this.nanoTime = System.nanoTime();
+            this.heapUsage = Debug.usedMemory();
+            this.gcRuns = Debug.gcRuns();
+        }
+    }
+
+    public static class SectionNode
+    {
+        public SectionNode parent = null;
+        public HashMap<String, SectionNode> children = new HashMap<>();
+        public RuntimeState startState = null;
+        public long nanos = 0, heapUsage = 0;
+        public int gcRuns = 0;
+
+        public SectionNode(boolean initStartState)
+        {
+            if (initStartState) startState = new RuntimeState();
         }
 
-        public int compareTo(Result other)
+        public SectionNode(SectionNode parent)
         {
-            if (other.usePercentage < usePercentage) return -1;
-            if (other.usePercentage > usePercentage) return 1;
-            return other.profilerName.compareTo(profilerName);
-        }
-
-        @SideOnly(Side.CLIENT)
-        public int getColor()
-        {
-            return (profilerName.hashCode() & 11184810) + 4473924;
+            this.parent = parent;
         }
     }
 }

@@ -11,8 +11,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -27,12 +25,7 @@ import java.util.List;
 
 public class CommandDebug extends CommandBase
 {
-    private static final Logger LOGGER = LogManager.getLogger();
-    protected static long profileStartTime;
-    protected static int profileStartTick;
-    protected static int profileStartGCRuns;
-    protected static long profileStartGCTime;
-    public static long totalHeapUsage;
+    public static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
 
     public String getName()
     {
@@ -66,11 +59,9 @@ public class CommandDebug extends CommandBase
 
                 notifyCommandListener(sender, this, "commands.debug.start");
                 server.enableProfiling();
-                profileStartTime = MinecraftServer.getCurrentTimeMillis();
-                profileStartTick = server.getTickCounter();
-                profileStartGCRuns = GCMessager.prevGCRuns;
-                profileStartGCTime = GCMessager.prevGCTime;
-                totalHeapUsage = 0;
+                OmniProfiler.SectionNode root = ((OmniProfiler) server.profiler).root;
+                root.startState = null;
+                root.children.clear();
             }
             else
             {
@@ -89,10 +80,9 @@ public class CommandDebug extends CommandBase
                     throw new CommandException("commands.debug.notStarted");
                 }
 
-                long timeSpan = MinecraftServer.getCurrentTimeMillis() - profileStartTime;
-                int tickSpan = server.getTickCounter() - profileStartTick;
                 String profilerResults = getProfilerResults(timeSpan, tickSpan, server);
                 server.profiler.profilingEnabled = false;
+                server.profi
 
                 saveProfilerResults(server, profilerResults);
 
@@ -135,61 +125,16 @@ public class CommandDebug extends CommandBase
     private String getProfilerResults(long timeSpan, int tickSpan, MinecraftServer server)
     {
         StringBuilder stringbuilder = new StringBuilder();
-        stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n");
-        stringbuilder.append("// ");
-        stringbuilder.append(getWittyComment());
-        stringbuilder.append("\n\n");
+        stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n\n");
         stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
         stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
         stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
         stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n");
         stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-        appendProfilerResults(0, "root", stringbuilder, server, tickSpan);
+        //TODO
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
         return stringbuilder.toString();
-    }
-
-    private void appendProfilerResults(int depth, String sectionName, StringBuilder builder, MinecraftServer server, int tickSpan)
-    {
-        List<OmniProfiler.Result> list = ((OmniProfiler) server.profiler).getProfilingData(sectionName, tickSpan, GCMessager.prevGCRuns - profileStartGCRuns, (GCMessager.prevGCTime - profileStartGCTime) * 1000000L, totalHeapUsage);
-
-        for (int i = 1; i < list.size(); i++)
-        {
-            OmniProfiler.Result profilerResult = list.get(i);
-            builder.append(String.format("[%02d] ", depth));
-
-            for (int j = 0; j < depth; ++j) builder.append("|   ");
-
-            if (profilerResult.gcRuns == 0) builder.append(profilerResult.profilerName).append(" - CPU: ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%, Heap: ").append(profilerResult.heapUsage).append("\n");
-            else builder.append(profilerResult.profilerName).append(" - ").append(String.format("%.2f", profilerResult.tickUsePercentage)).append("%, Heap: ").append(profilerResult.heapUsage).append(" (").append(profilerResult.gcRuns).append(" GC run(s))\n");
-
-            if (!"unspecified".equals(profilerResult.profilerName))
-            {
-                try
-                {
-                    appendProfilerResults(depth + 1, sectionName + "." + profilerResult.profilerName, builder, server, tickSpan);
-                }
-                catch (Exception exception)
-                {
-                    builder.append("[[ EXCEPTION ").append(exception).append(" ]]");
-                }
-            }
-        }
-    }
-
-    private static String getWittyComment()
-    {
-        String[] astring = new String[]{"Shiny numbers!", "Am I not running fast enough? :(", "I'm working as hard as I can!", "Will I ever be good enough for you? :(", "Speedy. Zoooooom!", "Hello world", "40% better than a crash report.", "Now with extra numbers", "Now with less numbers", "Now with the same numbers", "You should add flames to things, it makes them go faster!", "Do you feel the need for... optimization?", "*cracks redstone whip*", "Maybe if you treated it better then it'll have more motivation to work faster! Poor server."};
-
-        try
-        {
-            return astring[(int) (System.nanoTime() % (long) astring.length)];
-        }
-        catch (Throwable var2)
-        {
-            return "Witty comment unavailable :(";
-        }
     }
 
     public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)

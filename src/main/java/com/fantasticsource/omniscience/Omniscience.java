@@ -41,6 +41,7 @@ public class Omniscience
 
         MinecraftForge.EVENT_BUS.register(Omniscience.class);
         MinecraftForge.EVENT_BUS.register(ServerTickTimer.class);
+        MinecraftForge.EVENT_BUS.register(OmniProfiler.class);
         MinecraftForge.EVENT_BUS.register(PathVisualizer.class);
         Debug.init();
         Network.init();
