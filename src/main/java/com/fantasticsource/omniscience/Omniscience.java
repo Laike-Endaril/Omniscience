@@ -63,7 +63,7 @@ public class Omniscience
     @Mod.EventHandler
     public static void serverAboutToStart(FMLServerAboutToStartEvent event)
     {
-        ReflectionTool.set(MINECRAFT_SERVER_PROFILER_FIELD, event.getServer(), new OmniProfiler());
+        ReflectionTool.set(MINECRAFT_SERVER_PROFILER_FIELD, event.getServer(), OmniProfiler.INSTANCE);
     }
 
     @Mod.EventHandler

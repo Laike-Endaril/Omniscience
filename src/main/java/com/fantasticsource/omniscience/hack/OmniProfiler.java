@@ -2,9 +2,6 @@ package com.fantasticsource.omniscience.hack;
 
 import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omniscience.Debug;
-import com.fantasticsource.omniscience.GCMessager;
-import com.fantasticsource.omniscience.Omniscience;
-import com.fantasticsource.tools.Tools;
 import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -72,18 +69,23 @@ public class OmniProfiler extends Profiler
 
         if (active)
         {
+            if (starting) throw new IllegalStateException("Profiler tried to start while already active!");
+
+
             INSTANCE.endSection();
             if (currentNode != null)
             {
                 reset();
-                throw new IllegalStateException("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!  The stacktrace from this is probably not pointing at the actual issue!");
+                System.err.println("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!");
+                return;
             }
 
-            lastRunResults = new Results(PER_TICK_DATA);
-            PER_TICK_DATA.clear();
 
             if (stoppingCallbacks.size() > 0)
             {
+                lastRunResults = new Results(PER_TICK_DATA);
+                PER_TICK_DATA.clear();
+
                 Predicate<Results>[] callbacks = stoppingCallbacks.toArray(new Predicate[0]);
 
                 active = false;
@@ -91,10 +93,15 @@ public class OmniProfiler extends Profiler
 
                 for (Predicate<Results> callback : callbacks) callback.test(lastRunResults);
             }
+            else
+            {
+                currentNode = new SectionNode(true);
+                PER_TICK_DATA.put(ServerTickTimer.currentTick(), currentNode);
+            }
         }
 
 
-        if (!active && starting)
+        if (starting)
         {
             PER_TICK_DATA.clear();
             currentNode = new SectionNode(true);
@@ -122,20 +129,19 @@ public class OmniProfiler extends Profiler
             if (currentNode == null)
             {
                 reset();
-                throw new IllegalStateException("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!  The stacktrace from this is probably not pointing at the actual issue!");
+                System.err.println("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!");
+                return;
             }
-            else
-            {
-                RuntimeState startState = currentNode.startState;
-                currentNode.nanos += System.nanoTime() - startState.nanoTime;
-                currentNode.gcRuns += Debug.gcRuns() - startState.gcRuns;
-                long dif = Debug.usedMemory() - startState.heapUsage;
-                if (dif > 0) currentNode.heapUsage += dif;
 
-                currentNode.startState = null;
+            RuntimeState startState = currentNode.startState;
+            currentNode.nanos += System.nanoTime() - startState.nanoTime;
+            currentNode.gcRuns += Debug.gcRuns() - startState.gcRuns;
+            long dif = Debug.usedMemory() - startState.heapUsage;
+            if (dif > 0) currentNode.heapUsage += dif;
 
-                currentNode = currentNode.parent;
-            }
+            currentNode.startState = null;
+
+            currentNode = currentNode.parent;
         }
     }
 
@@ -190,15 +196,15 @@ public class OmniProfiler extends Profiler
         public String toString()
         {
             StringBuilder stringbuilder = new StringBuilder();
-            stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n\n");
-            stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
-            stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-            stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
-            stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n");
-            stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
-            stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-            //TODO
-            stringbuilder.append("--- END PROFILE DUMP ---\n\n");
+//            stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n\n");
+//            stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
+//            stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
+//            stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
+//            stringbuilder.append("// Garbage collectors ran ").append(GCMessager.prevGCRuns - profileStartGCRuns).append(" time(s) during profiling\n");
+//            stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
+//            stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
+//            //TODO
+//            stringbuilder.append("--- END PROFILE DUMP ---\n\n");
             return stringbuilder.toString();
         }
     }
