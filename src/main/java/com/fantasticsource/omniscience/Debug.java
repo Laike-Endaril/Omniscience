@@ -174,7 +174,7 @@ public class Debug
 
     public static String memData()
     {
-        long max = maxMemory(), allocated = allocatedMemory(), used = freeMemory();
+        long max = maxMemory(), allocated = allocatedMemory(), used = usedMemory();
         return "MEMORY ... Current: " + used + "/" + allocated + " (~" + (int) ((double) used / allocated * 100) + "%) ... Max: " + allocated + "/" + max + " (~" + (int) ((double) allocated / max * 100) + "%)";
     }
 
