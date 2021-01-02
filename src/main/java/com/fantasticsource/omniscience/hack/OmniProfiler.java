@@ -159,7 +159,7 @@ public class OmniProfiler extends Profiler
         {
             if (!force)
             {
-                //Vanilla has a different number of startSection() and endSection() calls
+                //Vanilla calls endSection() more times than it calls startSection()...
                 //TODO replace this filtering because it's incredibly inefficient
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 int index = 1;
@@ -185,6 +185,7 @@ public class OmniProfiler extends Profiler
         {
             if (!force)
             {
+                //Vanilla calls endSection() more times than it calls startSection()...
                 //TODO replace this filtering because it's incredibly inefficient
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 int index = 1;
@@ -200,6 +201,7 @@ public class OmniProfiler extends Profiler
                 return;
             }
 
+            
             if (debugging)
             {
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();

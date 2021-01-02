@@ -1,21 +1,8 @@
-Notes:
+Notes =======================================================================================================================================
 
 Remember to change the jar filename in AgentTest run config whenever a new jar is built
-Vanilla calls startSection() and endSection() different numbers of times
+Vanilla calls endSection() more times than it calls startSection()...
 
-
-
-Figure out how to deal with vanilla profiler call issues (stacktrace filter is too slow)
-Finish output
-
-
-
-Fix issues with OmniEventBus, or find another way to apply profiling to @SubscribeEvent
-
-
-
-Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)
-But earliest execution is still from a runtime agent (premain), and both require java args anyway?
 
 
 In the current version (1.12.2.000c), the game runs fine with the mod in the mods folder and the javaagent arg in MultiMC, but...
@@ -27,3 +14,19 @@ In the current version (1.12.2.000c), the game runs fine with the mod in the mod
 ...but it doesn't run...
 1. If the mod is in mods and you use javaagent (duplicate mod crash)
 2. If the mod is *not* in mods and you *don't* use javaagent (does not load mod)
+
+
+
+Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)
+But earliest execution is still from a runtime agent (premain), and both require java args anyway?
+
+
+
+TODO =======================================================================================================================================
+
+Figure out how to deal with vanilla profiler call issues (stacktrace filter is too slow)
+Finish output
+
+
+
+Fix issues with OmniEventBus, or find another way to apply profiling to @SubscribeEvent
