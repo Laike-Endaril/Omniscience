@@ -1,10 +1,17 @@
-Fix issues with OmniEventBus, or find another way to apply profiling to @SubscribeEvent
-
-
-
 Notes:
 
 Remember to change the jar filename in AgentTest run config whenever a new jar is built
+Vanilla calls startSection() and endSection() different numbers of times
+
+
+
+Figure out how to deal with vanilla profiler call issues (stacktrace filter is too slow)
+Finish output
+
+
+
+Fix issues with OmniEventBus, or find another way to apply profiling to @SubscribeEvent
+
 
 
 Incredibly early execution can be accomplished by using a tweaker class (implements ITweaker) and a command line argument pointing to it (--tweakClass TweakerClassName)

@@ -33,6 +33,7 @@ public class OmniEventBus extends EventBus
         listeners = (ConcurrentHashMap<Object, ArrayList<IEventListener>>) ReflectionTool.get(EVENT_BUS_LISTENERS_FIELD, originalBus);
         listenerOwners = (Map<Object, ModContainer>) ReflectionTool.get(EVENT_BUS_LISTENER_OWNERS_FIELD, originalBus);
         busID = (int) ReflectionTool.get(EVENT_BUS_BUS_ID_FIELD, originalBus);
+        throw new IllegalStateException("This should be disabled right now!");
     }
 
     @Override

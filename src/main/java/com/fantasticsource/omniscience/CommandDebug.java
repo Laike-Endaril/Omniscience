@@ -46,13 +46,15 @@ public class CommandDebug extends CommandBase
 
         if (args[0].equals("start"))
         {
-            OmniProfiler profiler = (OmniProfiler) server.profiler;
-            notifyCommandListener(sender, this, profiler.startProfiling());
+            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.startProfiling());
+        }
+        else if (args[0].equals("startdebug"))
+        {
+            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.startDebugging());
         }
         else if (args[0].equals("stop"))
         {
-            OmniProfiler profiler = (OmniProfiler) server.profiler;
-            notifyCommandListener(sender, this, profiler.stopProfiling(results ->
+            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.stopProfiling(results ->
             {
                 String profilerResults = results.toString();
                 saveProfilerResults(server, profilerResults);

@@ -31,11 +31,11 @@ public class OmniASMEventHandler extends ASMEventHandler
     {
         //Omni start
         Profiler profiler = Thread.currentThread().getName().equals("Server thread") ? FMLCommonHandler.instance().getMinecraftServerInstance().profiler : null;
-        if (profiler != null) profiler.startSection("@Subscribe " + event.getClass().getSimpleName() + "(" + modContainer.getName() + ")");
+//        if (profiler != null) profiler.startSection("@Subscribe " + event.getClass().getSimpleName() + "(" + modContainer.getName() + ")");
         //Omni end
 
         super.invoke(event);
 
-        if (profiler != null) profiler.endSection(); //Omni
+//        if (profiler != null) profiler.endSection(); //Omni
     }
 }
