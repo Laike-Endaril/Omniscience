@@ -1,7 +1,7 @@
 Notes =======================================================================================================================================
 
 Remember to change the jar filename in AgentTest run config whenever a new jar is built
-Vanilla calls endSection() more times than it calls startSection()...
+Vanilla calls endSection() more times than it calls startSection(), so I'm currently filtering out vanilla profiler calls
 
 
 
@@ -24,7 +24,6 @@ But earliest execution is still from a runtime agent (premain), and both require
 
 TODO =======================================================================================================================================
 
-Figure out how to deal with vanilla profiler call issues (stacktrace filter is too slow)
 Finish output
 
 

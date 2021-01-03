@@ -8,6 +8,7 @@ import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import sun.misc.SharedSecrets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -160,11 +161,22 @@ public class OmniProfiler extends Profiler
             if (!force)
             {
                 //Vanilla calls endSection() more times than it calls startSection()...
-                //TODO replace this filtering because it's incredibly inefficient
-                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                int index = 1;
-                while (stackTrace[index].getFileName().equals(FILENAME)) index++;
-                if (stackTrace[index].toString().contains("net.minecraft")) return;
+                if (SharedSecrets.getJavaLangAccess().getStackTraceElement(new Throwable(), 2).getClassName().substring(0, 14).equals("net.minecraft."))
+                {
+                    return;
+                }
+            }
+
+
+            if (debugging)
+            {
+                if (!Thread.currentThread().getName().equals("Server thread"))
+                {
+                    reset();
+                    System.err.println("profiler.startSection() was called from somewhere besides the server thread!  Stopping profiling and resetting profiler state!");
+                    Tools.printStackTrace();
+                    return;
+                }
             }
 
 
@@ -186,11 +198,10 @@ public class OmniProfiler extends Profiler
             if (!force)
             {
                 //Vanilla calls endSection() more times than it calls startSection()...
-                //TODO replace this filtering because it's incredibly inefficient
-                StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                int index = 1;
-                while (stackTrace[index].getFileName().equals(FILENAME)) index++;
-                if (stackTrace[index].toString().contains("net.minecraft")) return;
+                if (SharedSecrets.getJavaLangAccess().getStackTraceElement(new Throwable(), 2).getClassName().substring(0, 14).equals("net.minecraft."))
+                {
+                    return;
+                }
             }
 
 
@@ -201,9 +212,18 @@ public class OmniProfiler extends Profiler
                 return;
             }
 
-            
+
             if (debugging)
             {
+                if (!Thread.currentThread().getName().equals("Server thread"))
+                {
+                    reset();
+                    System.err.println("profiler.endSection() was called from somewhere besides the server thread!  Stopping profiling and resetting profiler state!");
+                    Tools.printStackTrace();
+                    return;
+                }
+
+
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 DebugRuntimeState startState = (DebugRuntimeState) currentNode.startState;
                 for (int i = 0; i < Tools.min(stackTrace.length, startState.stackTrace.length); i++)
@@ -263,8 +283,17 @@ public class OmniProfiler extends Profiler
     @Override
     public void endStartSection(String name)
     {
-        endSection();
-        startSection(name);
+        if (active)
+        {
+            //Vanilla calls endSection() more times than it calls startSection()...
+            if (SharedSecrets.getJavaLangAccess().getStackTraceElement(new Throwable(), 1).getClassName().substring(0, 14).equals("net.minecraft."))
+            {
+                return;
+            }
+
+            endSection();
+            startSection(name);
+        }
     }
 
     public static Results getLastRunResults()
