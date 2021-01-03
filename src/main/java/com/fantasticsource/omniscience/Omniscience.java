@@ -19,6 +19,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
@@ -63,6 +64,7 @@ public class Omniscience
     @Mod.EventHandler
     public static void serverAboutToStart(FMLServerAboutToStartEvent event)
     {
+        Debug.serverInit();
         ReflectionTool.set(MINECRAFT_SERVER_PROFILER_FIELD, event.getServer(), OmniProfiler.INSTANCE);
     }
 
@@ -87,5 +89,11 @@ public class Omniscience
         else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector; we are not running in dedicated server mode");
 
         GCMessager.init(event);
+    }
+
+    @Mod.EventHandler
+    public static void serverStopped(FMLServerStoppedEvent event)
+    {
+        Debug.serverThreadID = -1;
     }
 }

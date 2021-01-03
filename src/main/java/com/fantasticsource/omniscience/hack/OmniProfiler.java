@@ -18,9 +18,12 @@ import java.util.function.Predicate;
 
 public class OmniProfiler extends Profiler
 {
-    public static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
     public static final OmniProfiler INSTANCE = new OmniProfiler();
-    public static final String FILENAME = OmniProfiler.class.getSimpleName() + ".java";
+    public static final String[] VALID_MODES = new String[]{"total", "average", "peak"};
+
+    protected static final String ROOT_NAME = "OMNIROOT";
+    protected static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
+    protected static final String FILENAME = OmniProfiler.class.getSimpleName() + ".java";
 
     protected final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
     protected SectionNode currentNode = null;
@@ -29,7 +32,7 @@ public class OmniProfiler extends Profiler
     protected ArrayList<Predicate<Results>> stoppingCallbacks = new ArrayList<>();
     protected Results lastRunResults = null;
 
-    protected long startTime;
+    protected long startTime, startHeapAllocated;
     protected int startGCRuns;
 
     protected OmniProfiler()
@@ -126,7 +129,7 @@ public class OmniProfiler extends Profiler
             }
             else
             {
-                currentNode = new SectionNode("OMNIROOT", true);
+                currentNode = new SectionNode();
                 PER_TICK_DATA.put(ServerTickTimer.currentTick(), currentNode);
             }
         }
@@ -137,7 +140,7 @@ public class OmniProfiler extends Profiler
             if (startingMode > 1) debugging = true;
 
             PER_TICK_DATA.clear();
-            currentNode = new SectionNode("OMNIROOT", true);
+            currentNode = new SectionNode();
             PER_TICK_DATA.put(ServerTickTimer.currentTick(), currentNode);
 
             active = true;
@@ -145,6 +148,7 @@ public class OmniProfiler extends Profiler
 
             startTime = System.nanoTime();
             startGCRuns = Debug.gcRuns();
+            startHeapAllocated = Debug.cumulativeServerThreadHeapAllocations();
         }
     }
 
@@ -271,8 +275,7 @@ public class OmniProfiler extends Profiler
             RuntimeState startState = currentNode.startState;
             currentNode.nanos += System.nanoTime() - startState.nanoTime;
             currentNode.gcRuns += Debug.gcRuns() - startState.gcRuns;
-            long dif = Debug.usedMemory() - startState.heapUsage;
-            if (dif > 0) currentNode.heapUsage += dif;
+            currentNode.heapAllocated += Debug.cumulativeServerThreadHeapAllocations() - startState.heapAllocated;
 
             currentNode.startState = null;
 
@@ -304,13 +307,13 @@ public class OmniProfiler extends Profiler
 
     public static class RuntimeState
     {
-        public long nanoTime, heapUsage;
+        public long nanoTime, heapAllocated;
         public int gcRuns;
 
         public RuntimeState()
         {
             this.nanoTime = System.nanoTime();
-            this.heapUsage = Debug.usedMemory();
+            this.heapAllocated = Debug.cumulativeServerThreadHeapAllocations();
             this.gcRuns = Debug.gcRuns();
         }
     }
@@ -328,12 +331,17 @@ public class OmniProfiler extends Profiler
 
     public static class SectionNode
     {
-        public String fullName;
+        public String fullName, mode = null;
         public SectionNode parent = null;
         public HashMap<String, SectionNode> children = new HashMap<>();
         public RuntimeState startState = null;
-        public long nanos = 0, heapUsage = 0;
-        public int gcRuns = 0;
+        public long nanos = 0, heapAllocated = 0;
+        public int gcRuns = 0, divisor = 1;
+
+        public SectionNode()
+        {
+            this(ROOT_NAME, true);
+        }
 
         public SectionNode(String fullName, boolean initStartState)
         {
@@ -341,55 +349,140 @@ public class OmniProfiler extends Profiler
             if (initStartState) startState = INSTANCE.debugging ? new DebugRuntimeState() : new RuntimeState();
         }
 
-        public SectionNode(String fullName, SectionNode parent)
+        public SectionNode(String name, SectionNode parent)
         {
-            this.fullName = parent.fullName + "." + fullName;
+            this.fullName = parent.fullName + "." + name;
             this.parent = parent;
+            this.mode = parent.mode;
+            this.divisor = parent.divisor;
+        }
+
+        public SectionNode(String mode)
+        {
+            this(mode, INSTANCE.lastRunResults.perTickData);
+        }
+
+        public SectionNode(String mode, LinkedHashMap<Long, SectionNode> perTickData)
+        {
+            this(ROOT_NAME, false);
+            this.mode = mode;
+
+            if (!Tools.contains(VALID_MODES, mode)) throw new IllegalArgumentException("Mode is invalid: " + mode);
+
+            switch (mode)
+            {
+                case "total":
+                    for (SectionNode root : perTickData.values()) addRecursive(root);
+                    break;
+
+
+                case "average":
+                    for (SectionNode root : perTickData.values()) addRecursive(root);
+                    divisor = perTickData.size();
+                    break;
+
+
+                case "peak":
+                    for (SectionNode root : perTickData.values()) maxRecursive(root);
+                    break;
+            }
+        }
+
+
+        public SectionNode addRecursive(SectionNode other)
+        {
+            if (!fullName.equals(other.fullName)) throw new IllegalArgumentException("Names should match, but don't (" + fullName + " vs " + other.fullName + ")");
+
+            nanos += other.nanos;
+            heapAllocated += other.heapAllocated;
+            gcRuns += other.gcRuns;
+
+            for (Map.Entry<String, SectionNode> entry : other.children.entrySet())
+            {
+                String name = entry.getKey();
+                SectionNode node = entry.getValue();
+                children.computeIfAbsent(entry.getKey(), o -> new SectionNode(name, this)).addRecursive(node);
+            }
+
+            return this;
+        }
+
+        public SectionNode maxRecursive(SectionNode other)
+        {
+            if (!fullName.equals(other.fullName)) throw new IllegalArgumentException("Names should match, but don't (" + fullName + " vs " + other.fullName + ")");
+
+            nanos = Tools.max(nanos, other.nanos);
+            heapAllocated = Tools.max(heapAllocated, other.heapAllocated);
+            gcRuns = Tools.max(gcRuns, other.gcRuns);
+
+            for (Map.Entry<String, SectionNode> entry : other.children.entrySet())
+            {
+                String name = entry.getKey();
+                SectionNode node = entry.getValue();
+                children.computeIfAbsent(entry.getKey(), o -> new SectionNode(name, this)).maxRecursive(node);
+            }
+
+            return this;
+        }
+
+
+        @Override
+        public String toString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            switch (mode)
+            {
+                case "total":
+                    if (parent == null) stringBuilder.append("--- START OF TOTALED RESULTS ---\n\n");
+                    stringBuilder.append("todo\n"); //TODO
+                    if (parent == null) stringBuilder.append("\n--- END OF TOTALED RESULTS ---");
+                    return stringBuilder.toString();
+
+                case "average":
+                    if (parent == null) stringBuilder.append("--- START OF AVERAGED RESULTS ---\n\n");
+                    stringBuilder.append("todo\n"); //TODO
+                    if (parent == null) stringBuilder.append("\n--- END OF AVERAGED RESULTS ---");
+                    return stringBuilder.toString();
+
+                case "peak":
+                    if (parent == null) stringBuilder.append("--- START OF PEAK RESULTS ---\n\n");
+                    stringBuilder.append("todo\n"); //TODO
+                    if (parent == null) stringBuilder.append("\n--- END OF PEAK RESULTS ---");
+                    return stringBuilder.toString();
+
+                default:
+                    throw new IllegalStateException("This should never happen!");
+            }
         }
     }
 
     public static class Results
     {
         public final LinkedHashMap<Long, SectionNode> perTickData;
-        public final SectionNode averageData;
-        public final int timeSpan, tickSpan;
+        public final int timeSpan;
+        public final long heapAllocated;
 
         public Results(LinkedHashMap<Long, SectionNode> perTickData)
         {
             this.perTickData = (LinkedHashMap<Long, SectionNode>) perTickData.clone();
 
             timeSpan = (int) ((System.nanoTime() - INSTANCE.startTime) / 1000000);
-            Long[] ticks = perTickData.keySet().toArray(new Long[0]);
-            tickSpan = (int) (ticks[ticks.length - 1] - ticks[0]);
-
-            averageData = new SectionNode("OMNIROOT", false);
-            for (SectionNode rootNode : perTickData.values())
-            {
-                averageData.nanos += rootNode.nanos;
-                averageData.gcRuns += rootNode.gcRuns;
-                averageData.heapUsage += rootNode.heapUsage;
-            }
+            heapAllocated = Debug.cumulativeServerThreadHeapAllocations() - INSTANCE.startHeapAllocated;
         }
 
         @Override
         public String toString()
         {
-            StringBuilder stringbuilder = new StringBuilder();
-            stringbuilder.append("---- " + Omniscience.NAME + " Profiler Results ----\n\n");
-            stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
-            stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-            stringbuilder.append("// This is approximately ").append(String.format("%.2f", Tools.min((float) (tickSpan + 1) / ((float) timeSpan / 1000), 20))).append(" ticks per second. It should be 20 ticks per second\n");
-            stringbuilder.append("// Garbage collectors ran ").append(Debug.gcRuns() - INSTANCE.startGCRuns).append(" time(s) during profiling\n");
-//            stringbuilder.append("// Approximate total heap allocations during profiling - ").append(totalHeapUsage).append("\n\n");
-            stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
-            stringbuilder.append(perTickData.size()).append(" results\n");
-            for (Map.Entry<Long, SectionNode> entry : perTickData.entrySet())
-            {
-                stringbuilder.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-                //TODO
-            }
-            stringbuilder.append("--- END PROFILE DUMP ---\n\n");
-            return stringbuilder.toString();
+            return toString("average");
+        }
+
+        public String toString(String mode)
+        {
+            return "\n---- " + Omniscience.NAME + " Profiler Results ----\n\n" +
+                    "Time span: " + timeSpan + " ms\n" +
+                    "Tick span: " + perTickData.size() + " ticks\n" +
+                    "Ticks per second: " + String.format("%.2f", (float) (perTickData.size()) / ((float) timeSpan / 1000)) + " (should be ~20)\n" +
+                    new SectionNode(mode.toLowerCase(), perTickData) + "\n";
         }
     }
 }

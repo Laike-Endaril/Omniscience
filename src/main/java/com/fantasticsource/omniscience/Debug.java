@@ -15,34 +15,43 @@ import java.util.ArrayList;
 public class Debug
 {
     public static final Runtime RUNTIME = Runtime.getRuntime();
-
-    private static ThreadMXBean threadBean;
-    private static RuntimeMXBean runtimeBean;
+    public static final ThreadMXBean THREAD_MX_BEAN = ((ThreadMXBean) ManagementFactory.getThreadMXBean());
+    public static final RuntimeMXBean RUNTIME_MX_BEAN = ManagementFactory.getRuntimeMXBean();
+    protected static long serverThreadID = -1;
 
     public static void init()
     {
-        threadBean = ((ThreadMXBean) ManagementFactory.getThreadMXBean());
-        threadBean.setThreadAllocatedMemoryEnabled(true);
-        threadBean.setThreadCpuTimeEnabled(true);
+        THREAD_MX_BEAN.setThreadAllocatedMemoryEnabled(true);
+        THREAD_MX_BEAN.setThreadCpuTimeEnabled(true);
+    }
 
-        runtimeBean = ManagementFactory.getRuntimeMXBean();
+    public static void serverInit()
+    {
+        for (long id : THREAD_MX_BEAN.getAllThreadIds())
+        {
+            if (THREAD_MX_BEAN.getThreadInfo(id).getThreadName().equals("Server thread"))
+            {
+                serverThreadID = id;
+                break;
+            }
+        }
     }
 
 
     public static int threadCount()
     {
-        return threadBean.getThreadCount();
+        return THREAD_MX_BEAN.getThreadCount();
     }
 
     public static long[] threadIDs()
     {
-        return threadBean.getAllThreadIds();
+        return THREAD_MX_BEAN.getAllThreadIds();
     }
 
     public static ArrayList<String> threadNames()
     {
         ArrayList<String> names = new ArrayList<>();
-        for (long id : threadIDs()) names.add(threadBean.getThreadInfo(id).getThreadName());
+        for (long id : threadIDs()) names.add(THREAD_MX_BEAN.getThreadInfo(id).getThreadName());
         return names;
     }
 
@@ -51,7 +60,7 @@ public class Debug
         ThreadInfo info;
         for (long id : threadIDs())
         {
-            info = threadBean.getThreadInfo(id);
+            info = THREAD_MX_BEAN.getThreadInfo(id);
             if (info.getThreadName().equals(name)) return id;
         }
 
@@ -60,7 +69,7 @@ public class Debug
 
     public static String threadName(long id)
     {
-        ThreadInfo info = threadBean.getThreadInfo(id);
+        ThreadInfo info = THREAD_MX_BEAN.getThreadInfo(id);
         return info == null ? null : info.getThreadName();
     }
 
@@ -132,11 +141,11 @@ public class Debug
         result.units("", "", "ns", "ns/t", "B", "B/t");
         result.startSorting(4, false);
 
-        for (long id : threadBean.getAllThreadIds())
+        for (long id : THREAD_MX_BEAN.getAllThreadIds())
         {
-            long cpu = threadBean.getThreadCpuTime(id);
-            long heap = threadBean.getThreadAllocatedBytes(id);
-            result.add(id, threadBean.getThreadInfo(id).getThreadName(), cpu, (cpu / ServerTickTimer.currentTick()), heap, (heap / ServerTickTimer.currentTick()));
+            long cpu = THREAD_MX_BEAN.getThreadCpuTime(id);
+            long heap = THREAD_MX_BEAN.getThreadAllocatedBytes(id);
+            result.add(id, THREAD_MX_BEAN.getThreadInfo(id).getThreadName(), cpu, (cpu / ServerTickTimer.currentTick()), heap, (heap / ServerTickTimer.currentTick()));
         }
 
         return result;
@@ -173,6 +182,12 @@ public class Debug
         return allocatedMemory() - freeMemory();
     }
 
+    public static long cumulativeServerThreadHeapAllocations()
+    {
+        return THREAD_MX_BEAN.getThreadAllocatedBytes(serverThreadID);
+    }
+
+
     public static String memData()
     {
         long max = maxMemory(), allocated = allocatedMemory(), used = usedMemory();
@@ -187,10 +202,17 @@ public class Debug
         return gcRuns;
     }
 
+    public static long gcTime()
+    {
+        long gcTime = 0;
+        for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) gcTime += gcBean.getCollectionTime();
+        return gcTime;
+    }
+
 
     public static int processID()
     {
-        String s = runtimeBean.getName();
+        String s = RUNTIME_MX_BEAN.getName();
         return Integer.parseInt(s.substring(0, s.indexOf("@")));
     }
 
