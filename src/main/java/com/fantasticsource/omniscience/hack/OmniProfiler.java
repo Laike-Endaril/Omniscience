@@ -31,7 +31,7 @@ public class OmniProfiler extends Profiler
     protected ArrayList<Predicate<Results>> stoppingCallbacks = new ArrayList<>();
     protected Results lastRunResults = null;
 
-    protected long startNanos, startHeapAllocated, startGCTime;
+    protected long startNanos, startHeapAllocated, startGCNanos;
     protected int startGCRuns;
 
     protected OmniProfiler()
@@ -141,7 +141,7 @@ public class OmniProfiler extends Profiler
 
             startNanos = currentNode.startState.nanos;
             startGCRuns = currentNode.startState.gcRuns;
-            startGCTime = currentNode.startState.gcTime;
+            startGCNanos = currentNode.startState.gcNanos;
             startHeapAllocated = currentNode.startState.heapAllocated;
 
             active = true;
@@ -273,7 +273,7 @@ public class OmniProfiler extends Profiler
             RuntimeState startState = currentNode.startState, endState = debugging ? new DebugRuntimeState() : new RuntimeState();
             currentNode.nanos += endState.nanos - startState.nanos;
             currentNode.gcRuns += endState.gcRuns - startState.gcRuns;
-            currentNode.gcTime += endState.gcTime - startState.gcTime;
+            currentNode.gcTime += endState.gcNanos - startState.gcNanos;
             currentNode.heapAllocated += endState.heapAllocated - startState.heapAllocated;
 
             currentNode.startState = null;
@@ -310,7 +310,7 @@ public class OmniProfiler extends Profiler
 
     public static class RuntimeState
     {
-        public long nanos, heapAllocated, gcTime;
+        public long nanos, heapAllocated, gcNanos;
         public int gcRuns;
 
         public RuntimeState()
@@ -318,7 +318,7 @@ public class OmniProfiler extends Profiler
             this.nanos = System.nanoTime();
             this.heapAllocated = Debug.cumulativeServerThreadHeapAllocations();
             this.gcRuns = Debug.gcRuns();
-            this.gcTime = Debug.gcTime();
+            this.gcNanos = Debug.gcTime() * 1000000;
         }
     }
 
@@ -463,8 +463,13 @@ public class OmniProfiler extends Profiler
                     stringBuilder.append(line);
                     for (int i = line.length(); i < 70; i++) stringBuilder.append('-');
 
-                    float direct = 100 * (nanos - gcTime) / rootNanos;
-                    float fromGC = 100 * (gcTimePerHeap * heapAllocated) / rootNanos;
+                    float direct = 100f * (nanos - gcTime) / rootNanos;
+                    float fromGC = 100f * (gcTimePerHeap * heapAllocated) / rootNanos;
+                    if (parent == null)
+                    {
+                        System.out.println(this.heapAllocated);
+                        System.out.println(this.gcTime);
+                    }
                     if (parent == null) direct -= fromGC;
                     stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total").append("\n");
 
