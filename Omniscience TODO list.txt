@@ -24,7 +24,9 @@ But earliest execution is still from a runtime agent (premain), and both require
 
 TODO =======================================================================================================================================
 
-Finish output
+Subtract GC time from nanos when GC run is detected in section
+
+Finish output for total and peak
 
 
 

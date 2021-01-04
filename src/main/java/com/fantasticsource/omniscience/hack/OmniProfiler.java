@@ -22,10 +22,7 @@ public class OmniProfiler extends Profiler
     public static final String[] VALID_MODES = new String[]{"total", "average", "peak"};
 
     protected static final String ROOT_NAME = "ROOT";
-    protected static final long NORMAL_TICK_TIME_NANOS = 50_000_000;
     protected static final String FILENAME = OmniProfiler.class.getSimpleName() + ".java";
-//    protected static int nanoSamples = 0;
-//    protected static long lastNanos = 0, averageNanoError = 0;
 
     protected final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
     protected SectionNode currentNode = null;
@@ -34,7 +31,7 @@ public class OmniProfiler extends Profiler
     protected ArrayList<Predicate<Results>> stoppingCallbacks = new ArrayList<>();
     protected Results lastRunResults = null;
 
-    protected long startNanos, startHeapAllocated;
+    protected long startNanos, startHeapAllocated, startGCTime;
     protected int startGCRuns;
 
     protected OmniProfiler()
@@ -49,7 +46,6 @@ public class OmniProfiler extends Profiler
         debugging = false;
         startingMode = 0;
         stoppingCallbacks.clear();
-//        lastNanos = 0;
         //lastRunResults can be kept
     }
 
@@ -115,23 +111,7 @@ public class OmniProfiler extends Profiler
             }
 
 
-//            SectionNode lastNode = currentNode;
             RuntimeState transitionState = endSection(true);
-//            if (lastNanos == 0)
-//            {
-//                nanoSamples = 0;
-//                averageNanoError = 0;
-//                nanoDif();
-//            }
-//            else if (nanoSamples++ < 1)
-//            {
-//                System.out.println((lastNode.nanos - nanoDif()) / nanoSamples);
-//            }
-//            else
-//            {
-//                averageNanoError += lastNode.nanos - nanoDif();
-//                System.out.println(averageNanoError / nanoSamples);
-//            }
 
 
             if (stoppingCallbacks.size() > 0)
@@ -161,6 +141,7 @@ public class OmniProfiler extends Profiler
 
             startNanos = currentNode.startState.nanos;
             startGCRuns = currentNode.startState.gcRuns;
+            startGCTime = currentNode.startState.gcTime;
             startHeapAllocated = currentNode.startState.heapAllocated;
 
             active = true;
@@ -292,6 +273,7 @@ public class OmniProfiler extends Profiler
             RuntimeState startState = currentNode.startState, endState = debugging ? new DebugRuntimeState() : new RuntimeState();
             currentNode.nanos += endState.nanos - startState.nanos;
             currentNode.gcRuns += endState.gcRuns - startState.gcRuns;
+            currentNode.gcTime += endState.gcTime - startState.gcTime;
             currentNode.heapAllocated += endState.heapAllocated - startState.heapAllocated;
 
             currentNode.startState = null;
@@ -328,7 +310,7 @@ public class OmniProfiler extends Profiler
 
     public static class RuntimeState
     {
-        public long nanos, heapAllocated;
+        public long nanos, heapAllocated, gcTime;
         public int gcRuns;
 
         public RuntimeState()
@@ -336,6 +318,7 @@ public class OmniProfiler extends Profiler
             this.nanos = System.nanoTime();
             this.heapAllocated = Debug.cumulativeServerThreadHeapAllocations();
             this.gcRuns = Debug.gcRuns();
+            this.gcTime = Debug.gcTime();
         }
     }
 
@@ -356,7 +339,7 @@ public class OmniProfiler extends Profiler
         public SectionNode parent = null;
         public HashMap<String, SectionNode> children = new HashMap<>();
         public RuntimeState startState = null;
-        public long nanos = 0, heapAllocated = 0;
+        public long nanos = 0, heapAllocated = 0, gcTime = 0;
         public int gcRuns = 0, divisor = 1;
 
         public SectionNode()
@@ -412,7 +395,12 @@ public class OmniProfiler extends Profiler
 
 
                 case "peak":
-                    for (SectionNode root : perTickData.values()) maxRecursive(root);
+                    SectionNode max = this;
+                    for (SectionNode root : perTickData.values())
+                    {
+                        if (root.nanos > max.nanos) max = root;
+                    }
+                    addRecursive(max);
                     break;
             }
         }
@@ -425,6 +413,7 @@ public class OmniProfiler extends Profiler
             nanos += other.nanos;
             heapAllocated += other.heapAllocated;
             gcRuns += other.gcRuns;
+            gcTime += other.gcTime;
 
             for (Map.Entry<String, SectionNode> entry : other.children.entrySet())
             {
@@ -436,33 +425,21 @@ public class OmniProfiler extends Profiler
             return this;
         }
 
-        public SectionNode maxRecursive(SectionNode other)
-        {
-            if (!fullName.equals(other.fullName)) throw new IllegalArgumentException("Names should match, but don't (" + fullName + " vs " + other.fullName + ")");
-
-            nanos = Tools.max(nanos, other.nanos);
-            heapAllocated = Tools.max(heapAllocated, other.heapAllocated);
-            gcRuns = Tools.max(gcRuns, other.gcRuns);
-
-            for (Map.Entry<String, SectionNode> entry : other.children.entrySet())
-            {
-                String name = entry.getKey();
-                SectionNode node = entry.getValue();
-                children.computeIfAbsent(entry.getKey(), o -> new SectionNode(name, this)).maxRecursive(node);
-            }
-
-            return this;
-        }
-
 
         @Override
         public String toString()
         {
-            return toString(0, "");
+            return toString(0, "", 0, 0);
         }
 
-        public String toString(int depth, String cumulativePrefix)
+        public String toString(int depth, String cumulativePrefix, float gcTimePerHeap, float rootNanos)
         {
+            if (parent == null)
+            {
+                gcTimePerHeap = (float) gcTime / heapAllocated;
+                rootNanos = (float) nanos / divisor;
+            }
+
             StringBuilder stringBuilder = new StringBuilder();
             switch (mode)
             {
@@ -470,25 +447,28 @@ public class OmniProfiler extends Profiler
                     if (parent == null) stringBuilder.append("--- START OF TOTALED RESULTS ---\n\n");
                     stringBuilder.append("[").append(String.format("%02d", depth)).append("] ").append(cumulativePrefix);
 
-                    stringBuilder.append(name).append("\n"); //TODO
+                    stringBuilder.append(name).append(" --- NOT YET IMPLEMENTED\n"); //TODO
 
-                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   "));
+                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF TOTALED RESULTS ---");
                     return stringBuilder.toString();
 
 
                 case "average":
+                    float nanos = (float) this.nanos / divisor, heapAllocated = (float) this.heapAllocated / divisor, gcTime = (float) this.gcTime / divisor, gcRuns = (float) this.gcRuns / divisor;
+
                     if (parent == null) stringBuilder.append("--- START OF AVERAGED RESULTS ---\n\n");
 
                     String line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
                     stringBuilder.append(line);
                     for (int i = line.length(); i < 70; i++) stringBuilder.append('-');
 
-                    float direct = (float) nanos / NORMAL_TICK_TIME_NANOS;
-                    float fromGC = 0;
-                    stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total").append("\n"); //TODO
+                    float direct = 100 * (nanos - gcTime) / rootNanos;
+                    float fromGC = 100 * (gcTimePerHeap * heapAllocated) / rootNanos;
+                    if (parent == null) direct -= fromGC;
+                    stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total").append("\n");
 
-                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   "));
+                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF AVERAGED RESULTS ---");
                     return stringBuilder.toString();
 
@@ -497,9 +477,9 @@ public class OmniProfiler extends Profiler
                     if (parent == null) stringBuilder.append("--- START OF PEAK RESULTS ---\n\n");
                     stringBuilder.append("[").append(String.format("%02d", depth)).append("] ").append(cumulativePrefix);
 
-                    stringBuilder.append(name).append("\n"); //TODO
+                    stringBuilder.append(name).append(" --- NOT YET IMPLEMENTED\n"); //TODO
 
-                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   "));
+                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF PEAK RESULTS ---");
                     return stringBuilder.toString();
 
@@ -539,12 +519,4 @@ public class OmniProfiler extends Profiler
                     "\n\n" + new SectionNode(mode.toLowerCase(), perTickData) + "\n";
         }
     }
-
-//    protected static long nanoDif()
-//    {
-//        long nanos = System.nanoTime();
-//        long result = nanos - lastNanos;
-//        lastNanos = nanos;
-//        return result;
-//    }
 }
