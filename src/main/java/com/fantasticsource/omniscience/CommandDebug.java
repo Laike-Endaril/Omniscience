@@ -19,7 +19,10 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 public class CommandDebug extends CommandBase
 {
@@ -44,15 +47,12 @@ public class CommandDebug extends CommandBase
 
         if (args[0].equals("start"))
         {
-            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.startProfiling());
-        }
-        else if (args[0].equals("startadvanced"))
-        {
-            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.startDebugging());
+            if (args.length > 1) notifyCommandListener(sender, this, OmniProfiler.INSTANCE.start(Integer.parseInt(args[1])));
+            else notifyCommandListener(sender, this, OmniProfiler.INSTANCE.start(0));
         }
         else if (args[0].equals("stop"))
         {
-            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.stopProfiling(results ->
+            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.stop(results ->
             {
                 String profilerResults = results.toString();
                 saveProfilerResults(server, profilerResults);
@@ -103,8 +103,9 @@ public class CommandDebug extends CommandBase
         possibilities.add("start");
         possibilities.add("stop");
         possibilities.addAll(Arrays.asList(OmniProfiler.VALID_MODES));
-        possibilities.add("startadvanced");
 
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, possibilities) : Collections.emptyList();
+        if (args.length == 1) return getListOfStringsMatchingLastWord(args, possibilities);
+        if (args.length == 2) return getListOfStringsMatchingLastWord(args, "1", "2", "3");
+        return new ArrayList<>();
     }
 }

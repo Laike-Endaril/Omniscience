@@ -26,8 +26,7 @@ public class OmniProfiler extends Profiler
 
     protected final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
     protected SectionNode currentNode = null;
-    protected boolean active = false, debugging = false;
-    protected int startingMode = 0;
+    protected int startingLevel = -1, activeLevel = -1;
     protected ArrayList<Predicate<Results>> stoppingCallbacks = new ArrayList<>();
     protected Results lastRunResults = null;
 
@@ -42,47 +41,29 @@ public class OmniProfiler extends Profiler
     {
         PER_TICK_DATA.clear();
         currentNode = null;
-        active = false;
-        debugging = false;
-        startingMode = 0;
+        activeLevel = -1;
+        startingLevel = -1;
         stoppingCallbacks.clear();
         //lastRunResults can be kept
     }
 
-    /**
-     * @return human-readable result of this call (success or error)
-     * A start can only be queued if the profiler is not already running or starting
-     */
-    public String startProfiling()
+    public String start(int level)
     {
-        if (active) return "Profiler is already running";
-        if (startingMode > 0) return "Profiler is already starting";
+        if (activeLevel > -1) return "Profiler is already running";
+        if (startingLevel >= level)
+        {
+            if (level == 0) return "Profiler is already starting";
+            else return "Profiler is already starting (debug level " + startingLevel + ")";
+        }
 
-        startingMode = 1;
+        startingLevel = level;
         return "Starting profiler";
     }
 
-    /**
-     * @return human-readable result of this call (success or error)
-     * A debug start can only be queued if the profiler is not already running and not already starting in debug mode
-     */
-    public String startDebugging()
-    {
-        if (active) return "Profiler is already running";
-        if (startingMode > 1) return "Profiler is already starting in debug mode";
 
-        startingMode = 2;
-        return "Starting profiler in debug mode";
-    }
-
-    /**
-     * @return human-readable result of this call (success or error)
-     * A stop can be queued if the profiler is already running, or if it is starting (the latter will result in a 1-tick profiler run)
-     * Callbacks will be called unless there is an error (eg. different number of calls to startSection and endSection in one tick)
-     */
-    public String stopProfiling(Predicate<Results> callback)
+    public String stop(Predicate<Results> callback)
     {
-        if (!active && startingMode == 0) return "Profiler is not running or starting";
+        if (activeLevel == -1 && startingLevel == -1) return "Profiler is not running or starting";
 
         stoppingCallbacks.add(callback);
         return "Stopping profiler";
@@ -98,9 +79,9 @@ public class OmniProfiler extends Profiler
 
     protected void tick()
     {
-        if (active)
+        if (activeLevel > -1)
         {
-            if (startingMode > 0) throw new IllegalStateException("Profiler tried to start while already active!");
+            if (startingLevel > -1) throw new IllegalStateException("Profiler tried to start while already active!");
 
 
             if (currentNode.parent != null)
@@ -131,9 +112,9 @@ public class OmniProfiler extends Profiler
         }
 
 
-        if (startingMode > 0)
+        if (startingLevel > -1)
         {
-            if (startingMode > 1) debugging = true;
+            activeLevel = startingLevel;
 
             PER_TICK_DATA.clear();
             currentNode = new SectionNode();
@@ -144,8 +125,7 @@ public class OmniProfiler extends Profiler
             startGCNanos = currentNode.startState.gcNanos;
             startHeapAllocated = currentNode.startState.heapAllocated;
 
-            active = true;
-            startingMode = 0;
+            startingLevel = -1;
         }
     }
 
@@ -157,7 +137,7 @@ public class OmniProfiler extends Profiler
 
     protected void startSection(String name, boolean force)
     {
-        if (active)
+        if (activeLevel > -1)
         {
             if (!force)
             {
@@ -169,7 +149,7 @@ public class OmniProfiler extends Profiler
             }
 
 
-            if (debugging)
+            if (activeLevel > 0)
             {
                 if (!Thread.currentThread().getName().equals("Server thread"))
                 {
@@ -182,7 +162,7 @@ public class OmniProfiler extends Profiler
 
 
             currentNode = currentNode.children.computeIfAbsent(name, o -> new SectionNode(name, currentNode));
-            currentNode.startState = debugging ? new DebugRuntimeState() : new RuntimeState();
+            currentNode.startState = activeLevel > 0 ? new DebugRuntimeState() : new RuntimeState();
         }
     }
 
@@ -194,7 +174,7 @@ public class OmniProfiler extends Profiler
 
     public RuntimeState endSection(boolean force)
     {
-        if (active)
+        if (activeLevel > -1)
         {
             if (!force)
             {
@@ -214,7 +194,7 @@ public class OmniProfiler extends Profiler
             }
 
 
-            if (debugging)
+            if (activeLevel > 0)
             {
                 if (!Thread.currentThread().getName().equals("Server thread"))
                 {
@@ -230,15 +210,12 @@ public class OmniProfiler extends Profiler
                 for (int i = 0; i < Tools.min(stackTrace.length, startState.stackTrace.length); i++)
                 {
                     StackTraceElement before = startState.stackTrace[startState.stackTrace.length - 1 - i], after = stackTrace[stackTrace.length - 1 - i];
-                    if (before.getFileName().equals(FILENAME) && after.getFileName().equals(FILENAME))
-                    {
-                        break;
-                    }
-                    if (before.getClassName().equals(after.getClassName()) && before.getMethodName().equals(after.getMethodName())) continue;
+                    if (activeLevel < 3 && FILENAME.equals(before.getFileName()) && FILENAME.equals(after.getFileName())) break;
+                    if (activeLevel < 2 && before.getClassName().equals(after.getClassName()) && before.getMethodName().equals(after.getMethodName())) continue;
 
 
                     System.err.println();
-                    System.err.println("Stack mismatch:" + currentNode.fullName + "\n");
+                    System.err.println("Caller: " + currentNode.fullName + "\n");
 
                     System.err.println("Before:");
                     boolean found = false;
@@ -265,12 +242,12 @@ public class OmniProfiler extends Profiler
                         }
                     }
 
-                    System.err.println("\n");
+                    System.err.println("\n\n");
                 }
             }
 
 
-            RuntimeState startState = currentNode.startState, endState = debugging ? new DebugRuntimeState() : new RuntimeState();
+            RuntimeState startState = currentNode.startState, endState = activeLevel > 0 ? new DebugRuntimeState() : new RuntimeState();
             currentNode.nanos += endState.nanos - startState.nanos;
             currentNode.gcRuns += endState.gcRuns - startState.gcRuns;
             currentNode.gcTime += endState.gcNanos - startState.gcNanos;
@@ -289,7 +266,7 @@ public class OmniProfiler extends Profiler
     @Override
     public void endStartSection(String name)
     {
-        if (active)
+        if (activeLevel > -1)
         {
             //Vanilla calls endSection() more times than it calls startSection()...
             if (SharedSecrets.getJavaLangAccess().getStackTraceElement(new Throwable(), 1).getClassName().substring(0, 14).equals("net.minecraft."))
@@ -357,7 +334,7 @@ public class OmniProfiler extends Profiler
         {
             this.fullName = fullName;
             this.name = fullName;
-            if (initStartState) startState = INSTANCE.debugging ? new DebugRuntimeState() : new RuntimeState();
+            if (initStartState) startState = INSTANCE.activeLevel > 0 ? new DebugRuntimeState() : new RuntimeState();
         }
 
         public SectionNode(String name, SectionNode parent)

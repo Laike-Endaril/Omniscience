@@ -24,9 +24,13 @@ But earliest execution is still from a runtime agent (premain), and both require
 
 TODO =======================================================================================================================================
 
-Subtract GC time from nanos when GC run is detected in section
+Force profiler modes above 0 to only run for 1 tick
+
+Make the start command track the player and send errors if they occur
 
 Finish output for total and peak
+
+Account for other threads (right now servers with heavy off-server-thread garbage will skew results)
 
 
 
