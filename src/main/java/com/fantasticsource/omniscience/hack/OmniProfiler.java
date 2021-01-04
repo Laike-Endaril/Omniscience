@@ -4,16 +4,15 @@ import com.fantasticsource.mctools.ServerTickTimer;
 import com.fantasticsource.omniscience.Debug;
 import com.fantasticsource.omniscience.Omniscience;
 import com.fantasticsource.tools.Tools;
+import com.fantasticsource.tools.datastructures.Pair;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.profiler.Profiler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import sun.misc.SharedSecrets;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class OmniProfiler extends Profiler
@@ -27,8 +26,9 @@ public class OmniProfiler extends Profiler
     protected final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
     protected SectionNode currentNode = null;
     protected int startingLevel = -1, activeLevel = -1;
-    protected ArrayList<Predicate<Results>> stoppingCallbacks = new ArrayList<>();
+    protected ArrayList<Predicate<Pair<ICommandSender, Results>>> stoppingCallbacks = new ArrayList<>();
     protected Results lastRunResults = null;
+    protected HashSet<ICommandSender> listeners = new HashSet<>();
 
     protected long startNanos, startHeapAllocated, startGCNanos;
     protected int startGCRuns;
@@ -44,11 +44,14 @@ public class OmniProfiler extends Profiler
         activeLevel = -1;
         startingLevel = -1;
         stoppingCallbacks.clear();
+        listeners.clear();
         //lastRunResults can be kept
     }
 
-    public String start(int level)
+    public String start(ICommandSender starter, int level)
     {
+        listeners.add(starter);
+
         if (activeLevel > -1) return "Profiler is already running";
         if (startingLevel >= level)
         {
@@ -61,10 +64,11 @@ public class OmniProfiler extends Profiler
     }
 
 
-    public String stop(Predicate<Results> callback)
+    public String stop(ICommandSender stopper, Predicate<Pair<ICommandSender, Results>> callback)
     {
         if (activeLevel == -1 && startingLevel == -1) return "Profiler is not running or starting";
 
+        listeners.add(stopper);
         stoppingCallbacks.add(callback);
         return "Stopping profiler";
     }
@@ -97,12 +101,16 @@ public class OmniProfiler extends Profiler
 
             if (stoppingCallbacks.size() > 0)
             {
-                Predicate<Results>[] callbacks = stoppingCallbacks.toArray(new Predicate[0]);
+                Predicate<Pair<ICommandSender, Results>>[] callbacks = stoppingCallbacks.toArray(new Predicate[0]);
+                ICommandSender[] listeners = this.listeners.toArray(new ICommandSender[0]);
                 lastRunResults = new Results(PER_TICK_DATA);
 
                 reset();
 
-                for (Predicate<Results> callback : callbacks) callback.test(lastRunResults);
+                for (ICommandSender listener : listeners)
+                {
+                    for (Predicate<Pair<ICommandSender, Results>> callback : callbacks) callback.test(new Pair<>(listener, lastRunResults));
+                }
             }
             else
             {
@@ -250,8 +258,9 @@ public class OmniProfiler extends Profiler
             RuntimeState startState = currentNode.startState, endState = activeLevel > 0 ? new DebugRuntimeState() : new RuntimeState();
             currentNode.nanos += endState.nanos - startState.nanos;
             currentNode.gcRuns += endState.gcRuns - startState.gcRuns;
-            currentNode.gcTime += endState.gcNanos - startState.gcNanos;
+            currentNode.gcNanos += endState.gcNanos - startState.gcNanos;
             currentNode.heapAllocated += endState.heapAllocated - startState.heapAllocated;
+            currentNode.executions++;
 
             currentNode.startState = null;
 
@@ -316,8 +325,8 @@ public class OmniProfiler extends Profiler
         public SectionNode parent = null;
         public HashMap<String, SectionNode> children = new HashMap<>();
         public RuntimeState startState = null;
-        public long nanos = 0, heapAllocated = 0, gcTime = 0;
-        public int gcRuns = 0, divisor = 1;
+        public long nanos = 0, heapAllocated = 0, gcNanos = 0;
+        public int gcRuns = 0, divisor = 1, executions = 0;
 
         public SectionNode()
         {
@@ -390,7 +399,8 @@ public class OmniProfiler extends Profiler
             nanos += other.nanos;
             heapAllocated += other.heapAllocated;
             gcRuns += other.gcRuns;
-            gcTime += other.gcTime;
+            gcNanos += other.gcNanos;
+            executions += other.executions;
 
             for (Map.Entry<String, SectionNode> entry : other.children.entrySet())
             {
@@ -409,11 +419,11 @@ public class OmniProfiler extends Profiler
             return toString(0, "", 0, 0);
         }
 
-        public String toString(int depth, String cumulativePrefix, float gcTimePerHeap, float rootNanos)
+        public String toString(int depth, String cumulativePrefix, float gcNanosPerHeap, float rootNanos)
         {
             if (parent == null)
             {
-                gcTimePerHeap = (float) gcTime / heapAllocated;
+                gcNanosPerHeap = (float) gcNanos / heapAllocated;
                 rootNanos = (float) nanos / divisor;
             }
 
@@ -426,19 +436,18 @@ public class OmniProfiler extends Profiler
 
                     stringBuilder.append(name).append(" --- NOT YET IMPLEMENTED\n"); //TODO
 
-                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
+                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcNanosPerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF TOTALED RESULTS ---");
                     return stringBuilder.toString();
 
 
                 case "average":
-                    float nanos = (float) this.nanos / divisor, heapAllocated = (float) this.heapAllocated / divisor, gcTime = (float) this.gcTime / divisor, gcRuns = (float) this.gcRuns / divisor;
+                    float nanos = (float) this.nanos / divisor, heapAllocated = (float) this.heapAllocated / divisor, gcNanos = (float) this.gcNanos / divisor, gcRuns = (float) this.gcRuns / divisor, executions = (float) this.executions / divisor;
 
                     if (parent == null) stringBuilder.append("--- START OF AVERAGED RESULTS ---\n\n");
 
-                    float direct = 100f * (nanos - gcTime) / rootNanos;
-                    float fromGC = 100f * (gcTimePerHeap * heapAllocated) / rootNanos;
-                    if (parent == null) direct -= fromGC;
+                    float direct = 100f * (nanos - gcNanos) / rootNanos;
+                    float fromGC = 100f * gcNanosPerHeap * heapAllocated / rootNanos;
                     if (direct + fromGC < 0.1) return "";
 
 
@@ -446,9 +455,9 @@ public class OmniProfiler extends Profiler
                     stringBuilder.append(line);
                     for (int i = line.length(); i < 100; i++) stringBuilder.append('-');
 
-                    stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total").append("\n");
+                    stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total     ").append(String.format("%.1f", executions)).append(" executions \n");
 
-                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
+                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcNanosPerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF AVERAGED RESULTS ---");
                     return stringBuilder.toString();
 
@@ -459,7 +468,7 @@ public class OmniProfiler extends Profiler
 
                     stringBuilder.append(name).append(" --- NOT YET IMPLEMENTED\n"); //TODO
 
-                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
+                    for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcNanosPerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF PEAK RESULTS ---");
                     return stringBuilder.toString();
 
@@ -473,15 +482,12 @@ public class OmniProfiler extends Profiler
     public static class Results
     {
         public final LinkedHashMap<Long, SectionNode> perTickData;
-        public final int timeSpan;
-        public final long heapAllocated;
+        public final SectionNode totaledData;
 
         public Results(LinkedHashMap<Long, SectionNode> perTickData)
         {
             this.perTickData = (LinkedHashMap<Long, SectionNode>) perTickData.clone();
-
-            timeSpan = (int) ((System.nanoTime() - INSTANCE.startNanos) / 1000000);
-            heapAllocated = Debug.cumulativeServerThreadHeapAllocations() - INSTANCE.startHeapAllocated;
+            totaledData = new SectionNode("total", perTickData);
         }
 
         @Override
@@ -493,9 +499,11 @@ public class OmniProfiler extends Profiler
         public String toString(String mode)
         {
             return "\n==== " + Omniscience.NAME.toUpperCase() + " PROFILER RESULTS ====\n\n" +
-                    "Time span: " + timeSpan + " ms\n" +
+                    "Time span: " + String.format("%,d", totaledData.nanos) + " nanos\n" +
                     "Tick span: " + perTickData.size() + " ticks\n" +
-                    "Ticks per second: " + String.format("%.2f", (float) (perTickData.size()) / ((float) timeSpan / 1000)) + " (should be ~20)\n" +
+                    "Ticks per second: " + String.format("%.2f", (float) perTickData.size() * 1_000_000_000 / totaledData.nanos) + " (should be ~20)\n" +
+                    "Average tick time: " + (totaledData.nanos / perTickData.size()) + " nanos\n" +
+                    "Garbage collectors ran " + totaledData.gcRuns + " times during profiling (~" + String.format("%,d", totaledData.gcNanos) + " nanos / " + String.format("%.1f", 100f * totaledData.gcNanos / totaledData.nanos) + "% of total time)\n" +
                     "\n\n" + new SectionNode(mode.toLowerCase(), perTickData) + "\n";
         }
     }

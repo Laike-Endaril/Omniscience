@@ -47,14 +47,14 @@ public class CommandDebug extends CommandBase
 
         if (args[0].equals("start"))
         {
-            if (args.length > 1) notifyCommandListener(sender, this, OmniProfiler.INSTANCE.start(Integer.parseInt(args[1])));
-            else notifyCommandListener(sender, this, OmniProfiler.INSTANCE.start(0));
+            if (args.length > 1) notifyCommandListener(sender, this, OmniProfiler.INSTANCE.start(sender, Integer.parseInt(args[1])));
+            else notifyCommandListener(sender, this, OmniProfiler.INSTANCE.start(sender, 0));
         }
         else if (args[0].equals("stop"))
         {
-            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.stop(results ->
+            notifyCommandListener(sender, this, OmniProfiler.INSTANCE.stop(sender, pair ->
             {
-                String profilerResults = results.toString();
+                String profilerResults = pair.getValue().toString();
                 saveProfilerResults(server, profilerResults);
                 if (sender instanceof EntityPlayerMP) sendProfilerResults((EntityPlayerMP) sender, profilerResults);
                 return true;

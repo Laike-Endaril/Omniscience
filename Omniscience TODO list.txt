@@ -24,13 +24,16 @@ But earliest execution is still from a runtime agent (premain), and both require
 
 TODO =======================================================================================================================================
 
-Force profiler modes above 0 to only run for 1 tick
-
 Make the start command track the player and send errors if they occur
 
-Finish output for total and peak
+Use a SortableTable to organize data
+Change post-profiling output commands to allow definition of columns you want to display
+
+Force profiler modes above 0 to only run for 1 tick
 
 Account for other threads (right now servers with heavy off-server-thread garbage will skew results)
+
+Finish output for total and peak
 
 
 
