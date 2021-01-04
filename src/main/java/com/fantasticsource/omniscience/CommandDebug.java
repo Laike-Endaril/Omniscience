@@ -19,9 +19,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class CommandDebug extends CommandBase
 {
@@ -48,7 +46,7 @@ public class CommandDebug extends CommandBase
         {
             notifyCommandListener(sender, this, OmniProfiler.INSTANCE.startProfiling());
         }
-        else if (args[0].equals("startdebug"))
+        else if (args[0].equals("startadvanced"))
         {
             notifyCommandListener(sender, this, OmniProfiler.INSTANCE.startDebugging());
         }
@@ -61,6 +59,12 @@ public class CommandDebug extends CommandBase
                 if (sender instanceof EntityPlayerMP) sendProfilerResults((EntityPlayerMP) sender, profilerResults);
                 return true;
             }));
+        }
+        else if (Tools.contains(OmniProfiler.VALID_MODES, args[0]))
+        {
+            String profilerResults = OmniProfiler.getLastRunResults().toString(args[0]);
+            saveProfilerResults(server, profilerResults);
+            if (sender instanceof EntityPlayerMP) sendProfilerResults((EntityPlayerMP) sender, profilerResults);
         }
         else throw new WrongUsageException(getUsage(sender));
     }
@@ -95,6 +99,12 @@ public class CommandDebug extends CommandBase
 
     public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
     {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, "start", "stop") : Collections.emptyList();
+        ArrayList<String> possibilities = new ArrayList<>();
+        possibilities.add("start");
+        possibilities.add("stop");
+        possibilities.addAll(Arrays.asList(OmniProfiler.VALID_MODES));
+        possibilities.add("startadvanced");
+
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, possibilities) : Collections.emptyList();
     }
 }
