@@ -389,8 +389,8 @@ public class OmniProfiler extends Profiler
 
 
                 case "average":
-                    for (SectionNode root : perTickData.values()) addRecursive(root);
                     divisor = perTickData.size();
+                    for (SectionNode root : perTickData.values()) addRecursive(root);
                     break;
 
 
@@ -465,11 +465,6 @@ public class OmniProfiler extends Profiler
 
                     float direct = 100f * (nanos - gcTime) / rootNanos;
                     float fromGC = 100f * (gcTimePerHeap * heapAllocated) / rootNanos;
-                    if (parent == null)
-                    {
-                        System.out.println(this.heapAllocated);
-                        System.out.println(this.gcTime);
-                    }
                     if (parent == null) direct -= fromGC;
                     stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total").append("\n");
 
