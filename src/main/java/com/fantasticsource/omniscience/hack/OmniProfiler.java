@@ -438,7 +438,7 @@ public class OmniProfiler extends Profiler
 
                     String line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
                     stringBuilder.append(line);
-                    for (int i = line.length(); i < 70; i++) stringBuilder.append('-');
+                    for (int i = line.length(); i < 100; i++) stringBuilder.append('-');
 
                     float direct = 100f * (nanos - gcTime) / rootNanos;
                     float fromGC = 100f * (gcTimePerHeap * heapAllocated) / rootNanos;
