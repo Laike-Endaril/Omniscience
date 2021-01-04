@@ -436,13 +436,16 @@ public class OmniProfiler extends Profiler
 
                     if (parent == null) stringBuilder.append("--- START OF AVERAGED RESULTS ---\n\n");
 
+                    float direct = 100f * (nanos - gcTime) / rootNanos;
+                    float fromGC = 100f * (gcTimePerHeap * heapAllocated) / rootNanos;
+                    if (parent == null) direct -= fromGC;
+                    if (direct + fromGC < 0.1) return "";
+
+
                     String line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
                     stringBuilder.append(line);
                     for (int i = line.length(); i < 100; i++) stringBuilder.append('-');
 
-                    float direct = 100f * (nanos - gcTime) / rootNanos;
-                    float fromGC = 100f * (gcTimePerHeap * heapAllocated) / rootNanos;
-                    if (parent == null) direct -= fromGC;
                     stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~").append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~").append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total").append("\n");
 
                     for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcTimePerHeap, rootNanos));
