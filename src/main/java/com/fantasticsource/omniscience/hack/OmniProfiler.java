@@ -7,6 +7,7 @@ import com.fantasticsource.tools.Tools;
 import com.fantasticsource.tools.datastructures.Pair;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -60,7 +61,8 @@ public class OmniProfiler extends Profiler
         }
 
         startingLevel = level;
-        return "Starting profiler";
+        info("Starting profiler");
+        return null;
     }
 
 
@@ -70,7 +72,8 @@ public class OmniProfiler extends Profiler
 
         listeners.add(stopper);
         stoppingCallbacks.add(callback);
-        return "Stopping profiler";
+        info("Stopping profiler");
+        return null;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -79,6 +82,24 @@ public class OmniProfiler extends Profiler
         if (event.phase != TickEvent.Phase.START) return;
 
         INSTANCE.tick();
+    }
+
+    protected void info(String info)
+    {
+        System.out.println(info);
+        for (ICommandSender listener : listeners)
+        {
+            listener.sendMessage(new TextComponentString(info));
+        }
+    }
+
+    protected void error(String error)
+    {
+        System.err.println(error);
+        for (ICommandSender listener : listeners)
+        {
+            listener.sendMessage(new TextComponentString(error));
+        }
     }
 
     protected void tick()
@@ -90,8 +111,8 @@ public class OmniProfiler extends Profiler
 
             if (currentNode.parent != null)
             {
+                error("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!");
                 reset();
-                System.err.println("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!");
                 return;
             }
 
@@ -161,9 +182,9 @@ public class OmniProfiler extends Profiler
             {
                 if (!Thread.currentThread().getName().equals("Server thread"))
                 {
+                    error("profiler.startSection() was called from somewhere besides the server thread!  Stopping profiling and resetting profiler state!");
+                    for (StackTraceElement element : Thread.currentThread().getStackTrace()) error(element.toString());
                     reset();
-                    System.err.println("profiler.startSection() was called from somewhere besides the server thread!  Stopping profiling and resetting profiler state!");
-                    Tools.printStackTrace();
                     return;
                 }
             }
@@ -196,8 +217,8 @@ public class OmniProfiler extends Profiler
 
             if (currentNode == null)
             {
+                error("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!");
                 reset();
-                System.err.println("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!");
                 return null;
             }
 
@@ -206,9 +227,9 @@ public class OmniProfiler extends Profiler
             {
                 if (!Thread.currentThread().getName().equals("Server thread"))
                 {
+                    error("profiler.endSection() was called from somewhere besides the server thread!  Stopping profiling and resetting profiler state!");
+                    for (StackTraceElement element : Thread.currentThread().getStackTrace()) error(element.toString());
                     reset();
-                    System.err.println("profiler.endSection() was called from somewhere besides the server thread!  Stopping profiling and resetting profiler state!");
-                    Tools.printStackTrace();
                     return null;
                 }
 
@@ -222,35 +243,35 @@ public class OmniProfiler extends Profiler
                     if (activeLevel < 2 && before.getClassName().equals(after.getClassName()) && before.getMethodName().equals(after.getMethodName())) continue;
 
 
-                    System.err.println();
-                    System.err.println("Caller: " + currentNode.fullName + "\n");
+                    error("");
+                    error("Caller: " + currentNode.fullName + "\n");
 
-                    System.err.println("Before:");
+                    error("Before:");
                     boolean found = false;
                     for (StackTraceElement element : startState.stackTrace)
                     {
-                        if (found) System.err.println("* " + element);
+                        if (found) error("* " + element);
                         else
                         {
-                            System.err.println(element);
+                            error(element.toString());
                             if (element.equals(before)) found = true;
                         }
                     }
 
-                    System.err.println("\n");
-                    System.err.println("After:");
+                    error("\n");
+                    error("After:");
                     found = false;
                     for (StackTraceElement element : stackTrace)
                     {
-                        if (found) System.err.println("* " + element);
+                        if (found) error("* " + element);
                         else
                         {
-                            System.err.println(element);
+                            error(element.toString());
                             if (element.equals(after)) found = true;
                         }
                     }
 
-                    System.err.println("\n\n");
+                    error("\n\n");
                 }
             }
 

@@ -24,8 +24,6 @@ But earliest execution is still from a runtime agent (premain), and both require
 
 TODO =======================================================================================================================================
 
-Make the start command track the player and send errors if they occur
-
 Use a SortableTable to organize data
 Change post-profiling output commands to allow definition of columns you want to display
 
