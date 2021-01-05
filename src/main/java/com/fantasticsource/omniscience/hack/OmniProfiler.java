@@ -480,7 +480,8 @@ public class OmniProfiler extends Profiler
                             .append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~")
                             .append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total     ")
                             .append(String.format("%1$9s", String.format("%.1f", executions))).append(" executions/t     ")
-                            .append(String.format("%1$20s", String.format("%.1f", heapAllocated))).append(" bytes/t\n");
+                            .append(String.format("%1$10s", String.format("%.1f", nanos))).append(" nanos/t     ")
+                            .append(String.format("%1$15s", String.format("%.1f", heapAllocated))).append(" bytes/t\n");
 
                     for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcNanosPerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF AVERAGED RESULTS ---");
