@@ -25,7 +25,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import java.lang.reflect.Field;
 
-@Mod(modid = Omniscience.MODID, name = Omniscience.NAME, version = Omniscience.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.044m,)", acceptableRemoteVersions = "*")
+@Mod(modid = Omniscience.MODID, name = Omniscience.NAME, version = Omniscience.VERSION, dependencies = "required-after:fantasticlib@[1.12.2.044o,)", acceptableRemoteVersions = "*")
 public class Omniscience
 {
     //    protected static final Field MINECRAFT_FORGE_EVENT_BUS_FIELD = ReflectionTool.getField(MinecraftForge.class, "EVENT_BUS");
