@@ -159,6 +159,12 @@ public class OmniProfiler extends Profiler
     }
 
     @Override
+    public String getNameOfLastSection()
+    {
+        return currentNode == null ? "[UNKNOWN]" : currentNode.name;
+    }
+
+    @Override
     public void startSection(String name)
     {
         startSection(name, false);
