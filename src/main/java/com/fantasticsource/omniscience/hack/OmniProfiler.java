@@ -27,6 +27,7 @@ public class OmniProfiler extends Profiler
     protected final LinkedHashMap<Long, SectionNode> PER_TICK_DATA = new LinkedHashMap<>();
     protected SectionNode currentNode = null;
     protected int startingLevel = -1, activeLevel = -1;
+    protected ArrayList<StringBuilder> stackComparisons = new ArrayList<>();
     protected ArrayList<Predicate<Pair<ICommandSender, Results>>> stoppingCallbacks = new ArrayList<>();
     protected Results lastRunResults = null;
     protected HashSet<ICommandSender> listeners = new HashSet<>();
@@ -46,6 +47,7 @@ public class OmniProfiler extends Profiler
         startingLevel = -1;
         stoppingCallbacks.clear();
         listeners.clear();
+        stackComparisons.clear();
         //lastRunResults can be kept
     }
 
@@ -112,9 +114,11 @@ public class OmniProfiler extends Profiler
             if (currentNode.parent != null)
             {
                 error("profiler.startSection() was called more times this tick than profiler.endSection()!  Stopping profiling and resetting profiler state!");
+                for (StringBuilder stackComparison : stackComparisons) error(stackComparison.toString());
                 reset();
                 return;
             }
+            stackComparisons.clear();
 
 
             RuntimeState transitionState = endSection(true);
@@ -224,6 +228,7 @@ public class OmniProfiler extends Profiler
             if (currentNode == null)
             {
                 error("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!");
+                for (StringBuilder stackComparison : stackComparisons) error(stackComparison.toString());
                 reset();
                 return null;
             }
@@ -240,6 +245,7 @@ public class OmniProfiler extends Profiler
                 }
 
 
+                StringBuilder stackComparison = new StringBuilder();
                 StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                 DebugRuntimeState startState = (DebugRuntimeState) currentNode.startState;
                 for (int i = 0; i < Tools.min(stackTrace.length, startState.stackTrace.length); i++)
@@ -249,36 +255,36 @@ public class OmniProfiler extends Profiler
                     if (activeLevel < 2 && before.getClassName().equals(after.getClassName()) && before.getMethodName().equals(after.getMethodName())) continue;
 
 
-                    error("");
-                    error("Caller: " + currentNode.fullName + "\n");
+                    stackComparison.append("\n");
+                    stackComparison.append("Caller: ").append(currentNode.fullName).append("\n\n");
 
-                    error("Before:");
+                    stackComparison.append("Before:\n");
                     boolean found = false;
                     for (StackTraceElement element : startState.stackTrace)
                     {
-                        if (found) error("* " + element);
+                        if (found) stackComparison.append("* ").append(element).append("\n");
                         else
                         {
-                            error(element.toString());
+                            stackComparison.append(element.toString()).append("\n");
                             if (element.equals(before)) found = true;
                         }
                     }
 
-                    error("\n");
-                    error("After:");
+                    stackComparison.append("\n\nAfter:\n");
                     found = false;
                     for (StackTraceElement element : stackTrace)
                     {
-                        if (found) error("* " + element);
+                        if (found) stackComparison.append("* ").append(element).append("\n");
                         else
                         {
-                            error(element.toString());
+                            stackComparison.append(element.toString()).append("\n");
                             if (element.equals(after)) found = true;
                         }
                     }
 
-                    error("\n\n");
+                    stackComparison.append("\n\n\n");
                 }
+                stackComparisons.add(stackComparison);
             }
 
 
