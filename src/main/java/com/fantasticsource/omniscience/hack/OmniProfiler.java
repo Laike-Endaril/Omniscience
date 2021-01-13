@@ -121,7 +121,7 @@ public class OmniProfiler extends Profiler
             stackComparisons.clear();
 
 
-            RuntimeState transitionState = endSection(true);
+            RuntimeState transitionState = endSection(true, true);
 
 
             if (stoppingCallbacks.size() > 0)
@@ -208,10 +208,10 @@ public class OmniProfiler extends Profiler
     @Override
     public void endSection()
     {
-        endSection(false);
+        endSection(false, false);
     }
 
-    public RuntimeState endSection(boolean force)
+    public RuntimeState endSection(boolean force, boolean isTickTransition)
     {
         if (activeLevel > -1)
         {
@@ -225,7 +225,7 @@ public class OmniProfiler extends Profiler
             }
 
 
-            if (currentNode == null)
+            if (currentNode == null || (!isTickTransition && currentNode.parent == null))
             {
                 error("profiler.endSection() was called more times this tick than profiler.startSection()!  Stopping profiling and resetting profiler state!");
                 for (StringBuilder stackComparison : stackComparisons) error(stackComparison.toString());
