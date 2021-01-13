@@ -7,6 +7,7 @@ import com.fantasticsource.tools.Tools;
 import com.fantasticsource.tools.datastructures.Pair;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -53,7 +54,7 @@ public class OmniProfiler extends Profiler
 
     public String start(ICommandSender starter, int level)
     {
-        listeners.add(starter);
+        if (!(starter instanceof MinecraftServer)) listeners.add(starter);
 
         if (activeLevel > -1) return "Profiler is already running";
         if (startingLevel >= level)
@@ -72,7 +73,7 @@ public class OmniProfiler extends Profiler
     {
         if (activeLevel == -1 && startingLevel == -1) return "Profiler is not running or starting";
 
-        listeners.add(stopper);
+        if (!(stopper instanceof MinecraftServer)) listeners.add(stopper);
         stoppingCallbacks.add(callback);
         info("Stopping profiler");
         return null;
