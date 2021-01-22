@@ -31,7 +31,7 @@ public class ScreenDebug
             EntityPlayer player = Minecraft.getMinecraft().player;
             if (player != null)
             {
-                player.sendMessage(new TextComponentString(TextFormatting.LIGHT_PURPLE + ts.toString(false, true, false) + TextFormatting.GOLD + "(" + dif + " secs ago)" + TextFormatting.WHITE + " ..."));
+                player.sendMessage(new TextComponentString(TextFormatting.YELLOW + ts.toString(false, true, false) + TextFormatting.GOLD + "(" + dif + " secs ago)" + TextFormatting.WHITE + " ..."));
                 player.sendMessage(new TextComponentString(TextFormatting.GREEN + (screen == null ? "null" : screen.getClass().getName())));
             }
         }
@@ -56,7 +56,7 @@ public class ScreenDebug
                     EntityPlayer player = Minecraft.getMinecraft().player;
                     if (player != null)
                     {
-                        player.sendMessage(new TextComponentString(TextFormatting.LIGHT_PURPLE + ts.toString(false, true, false) + TextFormatting.WHITE + " ..."));
+                        player.sendMessage(new TextComponentString(TextFormatting.YELLOW + ts.toString(false, true, false) + TextFormatting.WHITE + " ..."));
                         player.sendMessage(new TextComponentString(TextFormatting.GREEN + (screen == null ? "null" : screen.getClass().getName())));
                     }
                 }

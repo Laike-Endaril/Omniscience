@@ -14,7 +14,7 @@ public class GCMessager
 
     public static void init(FMLServerStartedEvent event)
     {
-        System.out.println(TextFormatting.LIGHT_PURPLE + "Starting GCMessager");
+        System.out.println(TextFormatting.YELLOW + "Starting GCMessager");
         if (!initialized)
         {
             MinecraftForge.EVENT_BUS.register(GCMessager.class);
@@ -31,8 +31,8 @@ public class GCMessager
         if (gcRuns > prevGCRuns)
         {
             long gcTime = Debug.gcTime();
-            System.out.println(TextFormatting.LIGHT_PURPLE + "Garbage collector(s) ran " + (gcRuns - prevGCRuns) + " time(s) within the last server tick, spending ~" + (gcTime - prevGCTime) + "ms");
-            System.out.println(TextFormatting.LIGHT_PURPLE + "After GC... " + Debug.memData());
+            System.out.println(TextFormatting.YELLOW + "Garbage collector(s) ran " + (gcRuns - prevGCRuns) + " time(s) within the last server tick, spending ~" + (gcTime - prevGCTime) + "ms");
+            System.out.println(TextFormatting.YELLOW + "After GC... " + Debug.memData());
             prevGCRuns = gcRuns;
             prevGCTime = gcTime;
         }

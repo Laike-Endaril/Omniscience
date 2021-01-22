@@ -83,10 +83,10 @@ public class Omniscience
         MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
         if (server.isDedicatedServer())
         {
-            if (LagDetector.init(event, server)) System.out.println(TextFormatting.LIGHT_PURPLE + "Starting LagDetector");
-            else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector; the watchdog timeout setting is 0");
+            if (LagDetector.init(event, server)) System.out.println(TextFormatting.YELLOW + "Starting LagDetector");
+            else System.out.println(TextFormatting.YELLOW + "NOT starting LagDetector; the watchdog timeout setting is 0");
         }
-        else System.out.println(TextFormatting.LIGHT_PURPLE + "NOT starting LagDetector; we are not running in dedicated server mode");
+        else System.out.println(TextFormatting.YELLOW + "NOT starting LagDetector; we are not running in dedicated server mode");
 
         GCMessager.init(event);
     }
