@@ -462,30 +462,48 @@ public class OmniProfiler extends Profiler
             }
 
             StringBuilder stringBuilder = new StringBuilder();
+            float nanos = (float) this.nanos, heapAllocated = (float) this.heapAllocated, gcNanos = (float) this.gcNanos, executions = (float) this.executions, direct, fromGC;
+            String line;
             switch (mode)
             {
                 case "total":
-                    if (parent == null) stringBuilder.append("--- START OF TOTALED RESULTS ---\n\n");
-                    stringBuilder.append("[").append(String.format("%02d", depth)).append("] ").append(cumulativePrefix);
+                    if (parent == null) stringBuilder.append("--- START OF TOTAL RESULTS ---\n\n");
 
-                    stringBuilder.append(name).append(" --- NOT YET IMPLEMENTED\n"); //TODO
+                    direct = 100f * (nanos - gcNanos) / rootNanos;
+                    fromGC = 100f * gcNanosPerHeap * heapAllocated / rootNanos;
+                    if (direct + fromGC < 0.1) return "";
+
+
+                    line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
+                    stringBuilder.append(line);
+                    for (int i = line.length(); i < 100; i++) stringBuilder.append('-');
+
+                    stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~")
+                            .append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~")
+                            .append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total     ")
+                            .append(String.format("%1$9s", String.format("%.1f", executions))).append(" executions     ")
+                            .append(String.format("%1$10s", String.format("%.1f", nanos))).append(" nanos     ")
+                            .append(String.format("%1$15s", String.format("%.1f", heapAllocated))).append(" bytes\n");
 
                     for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcNanosPerHeap, rootNanos));
-                    if (parent == null) stringBuilder.append("\n--- END OF TOTALED RESULTS ---");
+                    if (parent == null) stringBuilder.append("\n--- END OF TOTAL RESULTS ---");
                     return stringBuilder.toString();
 
 
                 case "average":
-                    float nanos = (float) this.nanos / divisor, heapAllocated = (float) this.heapAllocated / divisor, gcNanos = (float) this.gcNanos / divisor, gcRuns = (float) this.gcRuns / divisor, executions = (float) this.executions / divisor;
+                    nanos /= divisor;
+                    heapAllocated /= divisor;
+                    gcNanos /= divisor;
+                    executions /= divisor;
 
                     if (parent == null) stringBuilder.append("--- START OF AVERAGED RESULTS ---\n\n");
 
-                    float direct = 100f * (nanos - gcNanos) / rootNanos;
-                    float fromGC = 100f * gcNanosPerHeap * heapAllocated / rootNanos;
+                    direct = 100f * (nanos - gcNanos) / rootNanos;
+                    fromGC = 100f * gcNanosPerHeap * heapAllocated / rootNanos;
                     if (direct + fromGC < 0.1) return "";
 
 
-                    String line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
+                    line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
                     stringBuilder.append(line);
                     for (int i = line.length(); i < 100; i++) stringBuilder.append('-');
 
@@ -503,9 +521,22 @@ public class OmniProfiler extends Profiler
 
                 case "peak":
                     if (parent == null) stringBuilder.append("--- START OF PEAK RESULTS ---\n\n");
-                    stringBuilder.append("[").append(String.format("%02d", depth)).append("] ").append(cumulativePrefix);
 
-                    stringBuilder.append(name).append(" --- NOT YET IMPLEMENTED\n"); //TODO
+                    direct = 100f * (nanos - gcNanos) / rootNanos;
+                    fromGC = 100f * gcNanosPerHeap * heapAllocated / rootNanos;
+                    if (direct + fromGC < 0.1) return "";
+
+
+                    line = "[" + String.format("%02d", depth) + "] " + cumulativePrefix + name + " ";
+                    stringBuilder.append(line);
+                    for (int i = line.length(); i < 100; i++) stringBuilder.append('-');
+
+                    stringBuilder.append(String.format("%1$6s", " " + String.format("%.1f", direct))).append("% direct     ~")
+                            .append(String.format("%1$5s", String.format("%.1f", fromGC))).append("% in GC     ~")
+                            .append(String.format("%1$5s", String.format("%.1f", direct + fromGC))).append("% total     ")
+                            .append(String.format("%1$9s", String.format("%.1f", executions))).append(" executions     ")
+                            .append(String.format("%1$10s", String.format("%.1f", nanos))).append(" nanos     ")
+                            .append(String.format("%1$15s", String.format("%.1f", heapAllocated))).append(" bytes\n");
 
                     for (SectionNode node : children.values()) stringBuilder.append(node.toString(depth + 1, cumulativePrefix + "|   ", gcNanosPerHeap, rootNanos));
                     if (parent == null) stringBuilder.append("\n--- END OF PEAK RESULTS ---");
