@@ -33,7 +33,7 @@ public class Omniscience
 
     public static final String MODID = "omnisciencedebugger";
     public static final String NAME = "Omniscience Debugger";
-    public static final String VERSION = "1.12.2.001g";
+    public static final String VERSION = "1.12.2.001h";
 
     static
     {
