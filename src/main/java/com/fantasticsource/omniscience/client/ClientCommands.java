@@ -1,6 +1,7 @@
 package com.fantasticsource.omniscience.client;
 
 import com.fantasticsource.mctools.MCTools;
+import com.fantasticsource.omniscience.Omniscience;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -144,6 +145,7 @@ public class ClientCommands extends CommandBase implements IClientCommand
 
     private void subCommand(ICommandSender sender, String[] args)
     {
+        EntityPlayer player = (EntityPlayer) sender;
         String cmd = args[0];
         switch (cmd)
         {
@@ -181,42 +183,41 @@ public class ClientCommands extends CommandBase implements IClientCommand
                         break;
 
                     case 2:
-                        if (!(sender instanceof EntityPlayer))
+                        Entity entity = null;
+                        NBTTagCompound compound;
+                        if (args[1].equals("hand"))
                         {
-                            sender.sendMessage(new TextComponentString(I18n.translateToLocalFormatted(MODID + ".error.notPlayer", cmd)));
-                            return;
+                            sender.sendMessage(new TextComponentString(""));
+                            sender.sendMessage(new TextComponentString(((EntityPlayer) sender).getHeldItemMainhand().getDisplayName()));
+                            notifyNBT(sender, ((EntityPlayer) sender).getHeldItemMainhand().writeToNBT(new NBTTagCompound()));
+                            sender.sendMessage(new TextComponentString(""));
                         }
-
-                        switch (args[1])
+                        else
                         {
-                            case "hand":
-                                sender.sendMessage(new TextComponentString(""));
-                                sender.sendMessage(new TextComponentString(((EntityPlayer) sender).getHeldItemMainhand().getDisplayName()));
-                                notifyNBT(sender, ((EntityPlayer) sender).getHeldItemMainhand().writeToNBT(new NBTTagCompound()));
-                                sender.sendMessage(new TextComponentString(""));
-                                break;
+                            switch (args[1])
+                            {
+                                case "self":
+                                    entity = (Entity) sender;
+                                    break;
 
-                            case "self":
-                                sender.sendMessage(new TextComponentString(""));
-                                sender.sendMessage(new TextComponentString(sender.getName()));
-                                notifyNBT(sender, ((EntityPlayer) sender).writeToNBT(new NBTTagCompound()));
-                                sender.sendMessage(new TextComponentString(""));
-                                break;
+                                case "nearestentity":
+                                    entity = player.world.findNearestEntityWithinAABB(Entity.class, player.getEntityBoundingBox().grow(100), player);
+                                    break;
+                            }
 
-                            case "nearestentity":
-                                EntityPlayer player = (EntityPlayer) sender;
-                                Entity entity = player.world.findNearestEntityWithinAABB(Entity.class, player.getEntityBoundingBox().grow(100), player);
-                                if (entity != null)
+                            if (entity != null)
+                            {
+                                sender.sendMessage(new TextComponentString(""));
+                                compound = new NBTTagCompound();
+                                if (!entity.writeToNBTAtomically(compound))
                                 {
-                                    sender.sendMessage(new TextComponentString(""));
-                                    sender.sendMessage(new TextComponentString(entity.getName() + " @ " + entity.posX + ", " + entity.posY + ", " + entity.posZ));
-                                    notifyNBT(sender, entity.writeToNBT(new NBTTagCompound()));
-                                    sender.sendMessage(new TextComponentString(""));
+                                    if (entity instanceof EntityPlayer) compound.setString("id", "minecraft:player");
+                                    entity.writeToNBT(compound);
                                 }
-                                else sender.sendMessage(new TextComponentString(I18n.translateToLocalFormatted(MODID + ".error.noEntityFound")));
-                                break;
-
-                            default:
+                                notifyNBT(sender, compound);
+                                sender.sendMessage(new TextComponentString(""));
+                            }
+                            else sender.sendMessage(new TextComponentString(Omniscience.MODID + ".error.noEntityFound"));
                         }
                         break;
                 }

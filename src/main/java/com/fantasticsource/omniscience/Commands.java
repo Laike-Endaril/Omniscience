@@ -6,6 +6,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
@@ -196,7 +197,7 @@ public class Commands extends CommandBase
 //                            notifyCommandListener(sender, this, "Stopping thread " + id + " (" + thread.getName() + ")");
 //                        }
 //                        else
-                            notifyCommandListener(sender, this, subUsage(cmd));
+                        notifyCommandListener(sender, this, subUsage(cmd));
                     }
                 }
                 else notifyCommandListener(sender, this, subUsage(cmd));
@@ -219,36 +220,42 @@ public class Commands extends CommandBase
                             return;
                         }
 
-                        switch (args[1])
+                        Entity entity = null;
+                        NBTTagCompound compound;
+                        if (args[1].equals("hand"))
                         {
-                            case "hand":
-                                notifyCommandListener(sender, this, "");
-                                notifyCommandListener(sender, this, ((EntityPlayerMP) sender).getHeldItemMainhand().getDisplayName());
-                                notifyNBT(sender, ((EntityPlayerMP) sender).getHeldItemMainhand().writeToNBT(new NBTTagCompound()));
-                                notifyCommandListener(sender, this, "");
-                                break;
+                            notifyCommandListener(sender, this, "");
+                            notifyCommandListener(sender, this, ((EntityPlayerMP) sender).getHeldItemMainhand().getDisplayName());
+                            notifyNBT(sender, ((EntityPlayerMP) sender).getHeldItemMainhand().writeToNBT(new NBTTagCompound()));
+                            notifyCommandListener(sender, this, "");
+                        }
+                        else
+                        {
+                            switch (args[1])
+                            {
+                                case "self":
+                                    entity = (Entity) sender;
+                                    break;
 
-                            case "self":
-                                notifyCommandListener(sender, this, "");
-                                notifyCommandListener(sender, this, sender.getName());
-                                notifyNBT(sender, ((EntityPlayerMP) sender).writeToNBT(new NBTTagCompound()));
-                                notifyCommandListener(sender, this, "");
-                                break;
+                                case "nearestentity":
+                                    EntityPlayerMP player = (EntityPlayerMP) sender;
+                                    entity = player.world.findNearestEntityWithinAABB(Entity.class, player.getEntityBoundingBox().grow(100), player);
+                                    break;
+                            }
 
-                            case "nearestentity":
-                                EntityPlayerMP player = (EntityPlayerMP) sender;
-                                Entity entity = player.world.findNearestEntityWithinAABB(Entity.class, player.getEntityBoundingBox().grow(100), player);
-                                if (entity != null)
+                            if (entity != null)
+                            {
+                                notifyCommandListener(sender, this, "");
+                                compound = new NBTTagCompound();
+                                if (!entity.writeToNBTAtomically(compound))
                                 {
-                                    notifyCommandListener(sender, this, "");
-                                    notifyCommandListener(sender, this, entity.getName() + " @ " + entity.posX + ", " + entity.posY + ", " + entity.posZ);
-                                    notifyNBT(sender, entity.writeToNBT(new NBTTagCompound()));
-                                    notifyCommandListener(sender, this, "");
+                                    if (entity instanceof EntityPlayer) compound.setString("id", "minecraft:player");
+                                    entity.writeToNBT(compound);
                                 }
-                                else notifyCommandListener(sender, this, Omniscience.MODID + ".error.noEntityFound");
-                                break;
-
-                            default:
+                                notifyNBT(sender, compound);
+                                notifyCommandListener(sender, this, "");
+                            }
+                            else notifyCommandListener(sender, this, Omniscience.MODID + ".error.noEntityFound");
                         }
                         break;
                 }
