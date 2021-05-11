@@ -1,5 +1,6 @@
 package com.fantasticsource.omniscience;
 
+import com.fantasticsource.tools.Tools;
 import com.fantasticsource.tools.datastructures.Pair;
 import net.minecraft.util.text.TextFormatting;
 
@@ -24,7 +25,7 @@ public class CodePointPrinter implements Runnable
     {
         if (!go)
         {
-            CodePointPrinter.sameMethodIterationPrintCycle = sameMethodIterationPrintCycle;
+            CodePointPrinter.sameMethodIterationPrintCycle = Tools.max(1, sameMethodIterationPrintCycle);
             go = true;
 
             System.out.println(TextFormatting.YELLOW + "Starting CodePointPrinter");
