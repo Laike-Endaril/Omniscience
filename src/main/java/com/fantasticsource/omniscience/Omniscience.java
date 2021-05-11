@@ -8,7 +8,6 @@ import com.fantasticsource.omniscience.hack.OmniProfiler;
 import com.fantasticsource.tools.ReflectionTool;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config;
@@ -16,10 +15,7 @@ import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
+import net.minecraftforge.fml.common.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
@@ -80,14 +76,6 @@ public class Omniscience
     @Mod.EventHandler
     public static void serverStarted(FMLServerStartedEvent event)
     {
-        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
-        if (server.isDedicatedServer())
-        {
-            if (LagDetector.init(event, server)) System.out.println(TextFormatting.YELLOW + "Starting LagDetector");
-            else System.out.println(TextFormatting.YELLOW + "NOT starting LagDetector; the watchdog timeout setting is 0");
-        }
-        else System.out.println(TextFormatting.YELLOW + "NOT starting LagDetector; we are not running in dedicated server mode");
-
         GCMessager.init(event);
     }
 
@@ -95,5 +83,15 @@ public class Omniscience
     public static void serverStopped(FMLServerStoppedEvent event)
     {
         Debug.serverThreadID = -1;
+    }
+
+    @Mod.EventHandler
+    public static void postInit(FMLPostInitializationEvent event)
+    {
+        ServerLagDetector.init(event);
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT)
+        {
+            ClientLagDetector.init(event);
+        }
     }
 }
