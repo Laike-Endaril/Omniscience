@@ -17,6 +17,7 @@ public class ClientLagDetector implements Runnable
 {
     private final long[] checkTimes = new long[]{1000, 5000, 10000};
     private static long currentTickStartTime = 0;
+    private static boolean startedCodePointPrinter = false;
 
     private boolean go = true;
 
@@ -40,6 +41,8 @@ public class ClientLagDetector implements Runnable
 
             if (start)
             {
+                if (startedCodePointPrinter) CodePointPrinter.stop();
+
                 System.out.println(TextFormatting.YELLOW + "Starting ClientLagDetector");
                 Thread thread1 = new Thread(new ClientLagDetector());
                 thread1.setName(NAME + "-ClientLagDetector");
@@ -77,6 +80,9 @@ public class ClientLagDetector implements Runnable
 
                 go = false;
                 currentTickStartTime = 0;
+
+                startedCodePointPrinter = true;
+                CodePointPrinter.start(0);
             }
             else if (tickTime >= checkTimes[1])
             {
